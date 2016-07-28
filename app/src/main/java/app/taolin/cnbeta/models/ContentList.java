@@ -28,6 +28,7 @@ public class ContentList {
         public String score_story;
         public String topic_logo;
         public String thumb;
+        public boolean is_read = false;
 
         @Override
         public boolean equals(Object o) {

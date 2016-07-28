@@ -1,5 +1,6 @@
 package app.taolin.cnbeta.adapter;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +58,7 @@ public class ContentListAdapter extends BaseAdapter {
         }
         ContentList.Result listItem = getItem(position);
         holder.title.setText(listItem.title.trim());
+        holder.title.setTextColor(Color.parseColor(listItem.is_read ? "#999999": "#444444"));
         holder.time.setText(ContentUtil.getPrettyTime(App.getInstance(), listItem.pubtime));
         return convertView;
     }

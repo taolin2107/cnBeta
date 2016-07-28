@@ -80,7 +80,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         contentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                openContent(mContentListAdapter.getItem(position - 1).sid);  //position 0 is the listview header
+                ContentList.Result result = mContentListAdapter.getItem(position - 1);  //position 0 is the listview header
+                result.is_read = true;
+                openContent(result.sid);
+                mContentListAdapter.notifyDataSetChanged();
             }
         });
 
