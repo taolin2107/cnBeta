@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import app.taolin.cnbeta.adapter.ContentListAdapter;
+import app.taolin.cnbeta.models.Content;
 import app.taolin.cnbeta.models.ContentList;
 import app.taolin.cnbeta.models.Headline;
 import app.taolin.cnbeta.utils.ContentUtil;
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         contentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                openContent(mContentListAdapter.getItem(position).sid);
+                openContent(mContentListAdapter.getItem(position - 1).sid);  //position 0 is the listview header
             }
         });
 
@@ -145,17 +146,14 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     private void refreshHeadline(List<Headline> headlineList) {
         mHeadlineViews.clear();
         final LayoutInflater inflator = LayoutInflater.from(MainActivity.this);
-        for (final Headline h: headlineList) {
-            final View headline = inflator.inflate(R.layout.headline, null);
-            final NetworkImageView thumb = (NetworkImageView) headline.findViewById(R.id.headline_thumb);
-            thumb.setImageUrl(h.thumb, VolleySingleton.getInstance().getImageLoader());
-            final TextView title = (TextView) headline.findViewById(R.id.headline_title);
-            title.setText(h.title);
-            mHeadlineViews.add(headline);
-            headline.setOnClickListener(new View.OnClickListener() {
+        for (final Headline headData: headlineList) {
+            final View headView = inflator.inflate(R.layout.headline, null);
+            mHeadlineViews.add(headView);
+            requestHeadlineImage(headData, headView);
+            headView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    openContent(h.sid);
+                    openContent(headData.sid);
                 }
             });
         }
@@ -166,6 +164,36 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 mPageIndicator.notifyDataSetChanged();
             }
         });
+    }
+
+    private void requestHeadlineImage(final Headline data, final View view) {
+        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(data.sid), Content.class, null,
+                new Response.Listener<Content>() {
+                    @Override
+                    public void onResponse(Content response) {
+                        if ("success".equals(response.status)) {
+                            data.title = response.result.title.trim();
+                            Document document = Jsoup.parse(response.result.bodytext);
+                            data.thumb = document.select("img").first().attr("src");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    final NetworkImageView thumb = (NetworkImageView) view.findViewById(R.id.headline_thumb);
+                                    final TextView title = (TextView) view.findViewById(R.id.headline_title);
+                                    thumb.setImageUrl(data.thumb, VolleySingleton.getInstance().getImageLoader());
+                                    title.setText(data.title);
+                                }
+                            });
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("Taolin", error.getMessage());
+            }
+        });
+        contentRequest.setShouldCache(false);
+        VolleySingleton.getInstance().addToRequestQueue(contentRequest);
     }
 
     private void openContent(final String sid) {

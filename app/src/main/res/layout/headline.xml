@@ -15,7 +15,12 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginStart="10dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:textColor="#ffffff"
+        android:shadowDy="2"
+        android:shadowRadius="3"
+        android:shadowColor="#33000000"
+        android:textColor="#ddffffff"
         android:layout_gravity="bottom"/>
 </FrameLayout>
