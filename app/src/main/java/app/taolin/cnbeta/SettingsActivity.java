@@ -1,5 +1,6 @@
 package app.taolin.cnbeta;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
@@ -33,7 +34,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 new FontSettingsDialog().show(getFragmentManager(), "font_settings");
                 break;
             case R.id.favor:
-
+                startActivity(new Intent(this, FavorArticleActivity.class));
                 break;
             case R.id.about:
 

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import app.taolin.cnbeta.models.Content;
+import app.taolin.cnbeta.utils.Constants;
 import app.taolin.cnbeta.utils.ContentUtil;
 import app.taolin.cnbeta.utils.GsonRequest;
 import app.taolin.cnbeta.utils.SharedPreferenceUtil;
@@ -84,7 +85,7 @@ public class ContentActivity extends AppCompatActivity {
     }
 
     private void setFontSize(TextView title, TextView abs, TextView content) {
-        switch (SharedPreferenceUtil.read(SharedPreferenceUtil.KEY_FONT_SIZE, 1)) {
+        switch (SharedPreferenceUtil.read(Constants.KEY_FONT_SIZE, 1)) {
             case 0:
                 title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
                 abs.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);

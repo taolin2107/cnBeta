@@ -1,5 +1,7 @@
 package app.taolin.cnbeta.models;
 
+import android.support.annotation.NonNull;
+
 import java.util.List;
 
 /**
@@ -14,7 +16,7 @@ public class ContentList {
     public String status;
     public List<Result> result;
 
-    public class Result {
+    public class Result implements Comparable<Result> {
         public String sid;
         public String title;
         public String pubtime;
@@ -38,6 +40,11 @@ public class ContentList {
         @Override
         public int hashCode() {
             return Integer.parseInt(sid.trim());
+        }
+
+        @Override
+        public int compareTo(@NonNull Result another) {
+            return another.pubtime.trim().compareTo(pubtime.trim());
         }
     }
 }

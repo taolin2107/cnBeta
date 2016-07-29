@@ -1,3 +1,4 @@
 <resources>
     <dimen name="content_padding">10dp</dimen>
+    <dimen name="swipe_menu_item_width">90dp</dimen>
 </resources>

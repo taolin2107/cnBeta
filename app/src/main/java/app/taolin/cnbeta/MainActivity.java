@@ -1,6 +1,9 @@
 package app.taolin.cnbeta;
 
 import android.content.Intent;
+import android.content.res.Resources;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -12,12 +15,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.NetworkImageView;
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.viewpagerindicator.IconPagerAdapter;
 import com.viewpagerindicator.PageIndicator;
 
@@ -28,13 +35,19 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
 import app.taolin.cnbeta.adapter.ContentListAdapter;
+import app.taolin.cnbeta.dao.DaoMaster;
+import app.taolin.cnbeta.dao.DaoSession;
+import app.taolin.cnbeta.dao.FavorArticle;
+import app.taolin.cnbeta.dao.FavorArticleDao;
 import app.taolin.cnbeta.models.Content;
 import app.taolin.cnbeta.models.ContentList;
 import app.taolin.cnbeta.models.Headline;
+import app.taolin.cnbeta.utils.Constants;
 import app.taolin.cnbeta.utils.ContentUtil;
 import app.taolin.cnbeta.utils.GsonRequest;
 import app.taolin.cnbeta.utils.VolleySingleton;
@@ -51,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     private List<ContentList.Result> mDataList;
     private ContentListAdapter mContentListAdapter;
     private NestRefreshLayout mLoader;
+
+    private FavorArticleDao mFavorArticleDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,10 +74,12 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
         initView();
         requestData(true);
+        initDatabase();
     }
 
     private void initView() {
-        ListView contentList = (ListView) findViewById(R.id.content_list);
+        SwipeMenuListView contentList = (SwipeMenuListView) findViewById(R.id.content_list);
+        createSwipeMenu(contentList);
         // add header
         View header = LayoutInflater.from(this).inflate(R.layout.header_view, contentList, false);
         final ViewPager headlines = (ViewPager) header.findViewById(R.id.headline_list);
@@ -75,12 +93,13 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         }
 
         mDataList = new ArrayList<>();
-        mContentListAdapter = new ContentListAdapter(mDataList);
+        mContentListAdapter = new ContentListAdapter(mDataList, false);
         contentList.setAdapter(mContentListAdapter);
         contentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ContentList.Result result = mContentListAdapter.getItem(position - 1);  //position 0 is the listview header
+                //position 0 is the listview header
+                ContentList.Result result = (ContentList.Result) mContentListAdapter.getItem(position - 1);
                 result.is_read = true;
                 openContent(result.sid);
                 mContentListAdapter.notifyDataSetChanged();
@@ -91,6 +110,48 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         mLoader.setPullRefreshEnable(true);
         mLoader.setPullLoadEnable(true);
         mLoader.setOnLoadingListener(this);
+    }
+
+    private void createSwipeMenu(SwipeMenuListView listView) {
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+            @Override
+            public void create(SwipeMenu menu) {
+                Resources res = MainActivity.this.getResources();
+                SwipeMenuItem menuItem = new SwipeMenuItem(MainActivity.this);
+                menuItem.setBackground(R.color.colorPrimary);
+                menuItem.setWidth(res.getDimensionPixelSize(R.dimen.swipe_menu_item_width));
+                menuItem.setTitle(R.string.settings_favor);
+                menuItem.setTitleSize(16);
+                menuItem.setTitleColor(Color.WHITE);
+                menu.addMenuItem(menuItem);
+            }
+        };
+        listView.setMenuCreator(creator);
+        listView.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
+        listView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                switch (index) {
+                    case 0:
+                        collectArticle(position);
+                        Toast.makeText(MainActivity.this, R.string.favor_toast, Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void collectArticle(int pos) {
+        ContentList.Result result = mDataList.get(pos);
+        FavorArticle article = new FavorArticle();
+        article.setSid(result.sid);
+        article.setTitle(result.title);
+        article.setCounter(result.counter);
+        article.setComments(result.comments);
+        article.setPubtime(result.pubtime);
+        article.setCollecttime(ContentUtil.getFormatTime());
+        mFavorArticleDao.insert(article);
     }
 
     private void requestData(boolean isRefresh) {
@@ -148,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private void refreshHeadline(List<Headline> headlineList) {
         mHeadlineViews.clear();
-        final LayoutInflater inflator = LayoutInflater.from(MainActivity.this);
+        final LayoutInflater inflator = LayoutInflater.from(this);
         for (final Headline headData: headlineList) {
             final View headView = inflator.inflate(R.layout.headline, null);
             mHeadlineViews.add(headView);
@@ -206,16 +267,25 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         VolleySingleton.getInstance().addToRequestQueue(contentRequest);
     }
 
+    private void initDatabase() {
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ARTICLE, null);
+        SQLiteDatabase database = helper.getWritableDatabase();
+        DaoMaster daoMaster = new DaoMaster(database);
+        DaoSession daoSession = daoMaster.newSession();
+        mFavorArticleDao = daoSession.getFavorArticleDao();
+    }
+
     private void openContent(final String sid) {
-        Intent intent = new Intent(MainActivity.this, ContentActivity.class);
+        Intent intent = new Intent(this, ContentActivity.class);
         intent.putExtra("sid", sid);
         startActivity(intent);
     }
 
     private void removeDuplicate(List<ContentList.Result> list) {
-        ArrayList l = new ArrayList<>(new LinkedHashSet<>(list));
+        ArrayList<ContentList.Result> l = new ArrayList<>(new LinkedHashSet<>(list));
         list.clear();
         list.addAll(l);
+        Collections.sort(list);
     }
 
     @Override

@@ -23,6 +23,8 @@ public class ContentUtil {
     private static final int HOUR = 60 * MINUTE;
     private static final int DAY = 24 * HOUR;
 
+    private static final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
     public static String getContentListUrl(final String endSid) {
         StringBuilder sb = new StringBuilder();
         sb.append("app_key=10000");
@@ -52,9 +54,8 @@ public class ContentUtil {
     }
 
     public static String getPrettyTime(Context context, String time) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         try {
-            Date pubTime = dateFormat.parse(time);
+            Date pubTime = mDateFormat.parse(time);
             long pastTime = System.currentTimeMillis() - pubTime.getTime();
             if (pastTime < HOUR) {
                 return context.getString(R.string.past_minutes, pastTime / MINUTE);
@@ -67,6 +68,10 @@ public class ContentUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static String getFormatTime() {
+        return mDateFormat.format(new Date());
     }
 
     private static final String[] filter = {"<strong>", "</strong>", "<p.*?>"};

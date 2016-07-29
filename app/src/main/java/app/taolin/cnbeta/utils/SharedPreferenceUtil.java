@@ -13,8 +13,6 @@ import app.taolin.cnbeta.App;
 
 public class SharedPreferenceUtil {
 
-    public static final String KEY_FONT_SIZE = "font_size";
-
     public static void write(String key, int value) {
         PreferenceManager.getDefaultSharedPreferences(App.getInstance()).edit().putInt(key, value).apply();
     }
