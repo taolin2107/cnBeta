@@ -9,6 +9,7 @@ import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -22,6 +23,7 @@ import java.net.URL;
 import app.taolin.cnbeta.models.Content;
 import app.taolin.cnbeta.utils.ContentUtil;
 import app.taolin.cnbeta.utils.GsonRequest;
+import app.taolin.cnbeta.utils.SharedPreferenceUtil;
 import app.taolin.cnbeta.utils.VolleySingleton;
 
 /**
@@ -55,6 +57,7 @@ public class ContentActivity extends AppCompatActivity {
         if (content != null) {
             content.setMovementMethod(LinkMovementMethod.getInstance());
         }
+        setFontSize(title, contentAbstract, content);
         final String sid = getIntent().getStringExtra("sid");
         GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(sid), Content.class, null,
                 new Response.Listener<Content>() {
@@ -78,6 +81,31 @@ public class ContentActivity extends AppCompatActivity {
         });
         contentRequest.setShouldCache(false);
         VolleySingleton.getInstance().addToRequestQueue(contentRequest);
+    }
+
+    private void setFontSize(TextView title, TextView abs, TextView content) {
+        switch (SharedPreferenceUtil.read(SharedPreferenceUtil.KEY_FONT_SIZE, 1)) {
+            case 0:
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+                abs.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                content.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                break;
+            case 1:
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+                abs.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                content.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                break;
+            case 2:
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
+                abs.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                content.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+                break;
+            case 3:
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+                abs.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+                content.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+                break;
+        }
     }
 
     private Html.ImageGetter mImageGetter = new Html.ImageGetter() {

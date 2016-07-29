@@ -1,80 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
+    android:background="#dddddddd"
+    android:paddingTop="18dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="1px"
+        android:background="#cccccc"/>
+
+    <FrameLayout
+        android:id="@+id/font_settings"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:onClick="onClick"
+        android:background="@drawable/bg_settings_item">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:textSize="16sp"
-            android:text="正文字号"/>
-
-        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:orientation="horizontal">
+            android:layout_marginStart="20dp"
+            android:layout_gravity="start|center_vertical"
+            android:textSize="16sp"
+            android:text="@string/settings_font"/>
 
-            <TextView
-                android:layout_width="35dp"
-                android:layout_height="25dp"
-                android:gravity="center"
-                android:background="@drawable/bg_text_size_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:textColor="#000000"
-                android:textSize="14sp"
-                android:text="小"/>
-
-            <TextView
-                android:layout_width="35dp"
-                android:layout_height="25dp"
-                android:layout_marginLeft="-1dp"
-                android:gravity="center"
-                android:background="@drawable/bg_text_size_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:textColor="#000000"
-                android:textSize="14sp"
-                android:text="中"/>
-
-            <TextView
-                android:layout_width="35dp"
-                android:layout_height="25dp"
-                android:layout_marginLeft="-1dp"
-                android:gravity="center"
-                android:background="@drawable/bg_text_size_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:textColor="#000000"
-                android:textSize="14sp"
-                android:text="大"/>
-
-            <TextView
-                android:layout_width="35dp"
-                android:layout_height="25dp"
-                android:layout_marginLeft="-1dp"
-                android:gravity="center"
-                android:background="@drawable/bg_text_size_settings"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:textColor="#000000"
-                android:textSize="14sp"
-                android:text="特大"/>
-
-        </LinearLayout>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_gravity="end|center_vertical"
+            android:src="@drawable/right"/>
 
     </FrameLayout>
 
-
-    <TextView
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="字体大小"/>
+        android:layout_height="1px"
+        android:background="#cccccc"/>
+
+    <FrameLayout
+        android:id="@+id/favor"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:onClick="onClick"
+        android:background="@drawable/bg_settings_item">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_gravity="start|center_vertical"
+            android:textSize="16sp"
+            android:text="@string/settings_favor"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_gravity="end|center_vertical"
+            android:src="@drawable/right"/>
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#cccccc"/>
+
+    <FrameLayout
+        android:id="@+id/about"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:onClick="onClick"
+        android:background="@drawable/bg_settings_item">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_gravity="start|center_vertical"
+            android:textSize="16sp"
+            android:text="@string/settings_about"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_gravity="end|center_vertical"
+            android:src="@drawable/right"/>
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#cccccc"/>
 </LinearLayout>

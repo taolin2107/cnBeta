@@ -174,20 +174,22 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 new Response.Listener<Content>() {
                     @Override
                     public void onResponse(Content response) {
-                        if ("success".equals(response.status)) {
-                            data.title = response.result.title.trim();
-                            Document document = Jsoup.parse(response.result.bodytext);
-                            data.thumb = document.select("img").first().attr("src");
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    final NetworkImageView thumb = (NetworkImageView) view.findViewById(R.id.headline_thumb);
-                                    final TextView title = (TextView) view.findViewById(R.id.headline_title);
-                                    thumb.setImageUrl(data.thumb, VolleySingleton.getInstance().getImageLoader());
-                                    title.setText(data.title);
-                                }
-                            });
-                        }
+                        try {
+                            if ("success".equals(response.status)) {
+                                data.title = response.result.title.trim();
+                                Document document = Jsoup.parse(response.result.bodytext);
+                                data.thumb = document.select("img").first().attr("src");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        final NetworkImageView thumb = (NetworkImageView) view.findViewById(R.id.headline_thumb);
+                                        final TextView title = (TextView) view.findViewById(R.id.headline_title);
+                                        thumb.setImageUrl(data.thumb, VolleySingleton.getInstance().getImageLoader());
+                                        title.setText(data.title);
+                                    }
+                                });
+                            }
+                        } catch (Exception e) {}
                     }
                 }, new Response.ErrorListener() {
             @Override

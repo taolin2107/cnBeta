@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
 
 /**
  * @author taolin
@@ -13,7 +14,7 @@ import android.view.MenuItem;
  * @description Settings
  */
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends AppCompatActivity implements View.OnClickListener{
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -25,6 +26,20 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.settings);
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.font_settings:
+                new FontSettingsDialog().show(getFragmentManager(), "font_settings");
+                break;
+            case R.id.favor:
+
+                break;
+            case R.id.about:
+
+                break;
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="font_size_list">
+        <item>小</item>
+        <item>标准</item>
+        <item>大</item>
+        <item>特大</item>
+    </string-array>
+</resources>

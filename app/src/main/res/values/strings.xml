@@ -5,4 +5,7 @@
     <string name="past_hours">%d小时前</string>
     <string name="past_days">%d天前</string>
     <string name="menu_title_settings">设置</string>
+    <string name="settings_font">正文字号</string>
+    <string name="settings_favor">收藏</string>
+    <string name="settings_about">关于</string>
 </resources>
