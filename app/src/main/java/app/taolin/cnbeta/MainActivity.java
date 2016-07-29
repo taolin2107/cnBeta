@@ -178,7 +178,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                             if ("success".equals(response.status)) {
                                 data.title = response.result.title.trim();
                                 Document document = Jsoup.parse(response.result.bodytext);
-                                data.thumb = document.select("img").first().attr("src");
+                                Element imgElement = document.select("img").first();
+                                if (imgElement != null) {
+                                    data.thumb = imgElement.attr("src");
+                                }
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -189,7 +192,9 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                                     }
                                 });
                             }
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
             @Override
