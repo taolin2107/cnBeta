@@ -24,6 +24,7 @@ public class DaoMaster extends AbstractDaoMaster {
         FavorItemDao.createTable(db, ifNotExists);
         ListItemDao.createTable(db, ifNotExists);
         ArticleDao.createTable(db, ifNotExists);
+        HeadlineDao.createTable(db, ifNotExists);
     }
 
     /** Drops underlying database table using DAOs. */
@@ -31,6 +32,7 @@ public class DaoMaster extends AbstractDaoMaster {
         FavorItemDao.dropTable(db, ifExists);
         ListItemDao.dropTable(db, ifExists);
         ArticleDao.dropTable(db, ifExists);
+        HeadlineDao.dropTable(db, ifExists);
     }
 
     /**
@@ -52,6 +54,7 @@ public class DaoMaster extends AbstractDaoMaster {
         registerDaoClass(FavorItemDao.class);
         registerDaoClass(ListItemDao.class);
         registerDaoClass(ArticleDao.class);
+        registerDaoClass(HeadlineDao.class);
     }
 
     public DaoSession newSession() {

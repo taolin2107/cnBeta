@@ -36,6 +36,9 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             case R.id.favor:
                 startActivity(new Intent(this, FavorListActivity.class));
                 break;
+            case R.id.clean_cache:
+                break;
+
             case R.id.about:
 
                 break;

@@ -45,6 +45,8 @@ import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
 import app.taolin.cnbeta.dao.FavorItem;
 import app.taolin.cnbeta.dao.FavorItemDao;
+import app.taolin.cnbeta.dao.Headline;
+import app.taolin.cnbeta.dao.HeadlineDao;
 import app.taolin.cnbeta.dao.ListItem;
 import app.taolin.cnbeta.dao.ListItemDao;
 import app.taolin.cnbeta.models.ArticleModel;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private static final String MAX_TIME = "max_time";
     private static final long REFRESH_INTERVEL = 5 * 60 * 1000;
+    private static final int HEADLINE_NUM = 3;
 
     private List<View> mHeadlineViews;
     private ViewPagerAdapter mHeadlineAdapter;
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private FavorItemDao mFavorItemDao;
     private ListItemDao mListItemDao;
+    private HeadlineDao mHeadlineDao;
 
     private long mLastRefreshTime;
 
@@ -117,6 +121,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         View header = LayoutInflater.from(this).inflate(R.layout.header_view, listView, false);
         final ViewPager headlines = (ViewPager) header.findViewById(R.id.headline_list);
         mHeadlineViews = new ArrayList<>();
+        final LayoutInflater inflator = LayoutInflater.from(this);
+        for (int i = 0; i < HEADLINE_NUM; i++) {
+            mHeadlineViews.add(inflator.inflate(R.layout.headline, null));
+        }
         mHeadlineAdapter = new ViewPagerAdapter();
         headlines.setAdapter(mHeadlineAdapter);
         mPageIndicator = (PageIndicator) header.findViewById(R.id.indicator);
@@ -219,27 +227,81 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         contentRequest.setShouldCache(false);
         VolleySingleton.getInstance().addToRequestQueue(contentRequest);
 
-        requestHeadline();
+        refreshHeadline();
     }
 
-    private void requestHeadline() {
+    private void refreshHeadline() {
+        List<HeadlineModel> headlineList = loadHeadlineFromDatabase();
+        if (headlineList.size() == HEADLINE_NUM) {
+            setHeadlineView(headlineList);
+        }
+        requestHeadlineList(headlineList);
+    }
+
+    private List<HeadlineModel> loadHeadlineFromDatabase() {
+        List<HeadlineModel> headlineList = new ArrayList<>();
+        List<Headline> heads = mHeadlineDao.queryBuilder().list();
+        for (Headline head: heads) {
+            HeadlineModel headData = new HeadlineModel();
+            headData.sid = head.getSid();
+            headData.title = head.getTitle();
+            headData.thumb = head.getThumb();
+            headData.index = head.getIndex();
+            headlineList.add(headData);
+        }
+        return headlineList;
+    }
+
+    private void setHeadlineView(final List<HeadlineModel> headList) {
+        for (int i = 0; i < HEADLINE_NUM; i++) {
+            final View headView = mHeadlineViews.get(i);
+            final HeadlineModel headData = headList.get(i);
+            headView.setTag(headData.sid);
+
+            final NetworkImageView thumb = (NetworkImageView) headView.findViewById(R.id.headline_thumb);
+            final TextView title = (TextView) headView.findViewById(R.id.headline_title);
+            thumb.setImageUrl(headData.thumb, VolleySingleton.getInstance().getImageLoader());
+            title.setText(headData.title);
+
+            headView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openContent(headData.sid);
+                }
+            });
+        }
+    }
+
+    private void requestHeadlineList(final List<HeadlineModel> headlineList) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     Document document = Jsoup.connect("http://www.cnbeta.com/").timeout(10000).get();
                     Elements elements = document.select(".main_content .headline dl");
-                    List<HeadlineModel> headlineList = new ArrayList<>();
+                    List<HeadlineModel> tempList = new ArrayList<>();
+                    boolean needUpdate = false;
                     for (Element e: elements) {
                         HeadlineModel headline = new HeadlineModel();
                         final String link = e.select("dt a").first().attr("href");
                         headline.sid = link.substring(link.lastIndexOf("/") + 1, link.lastIndexOf("."));
                         headline.title = e.select("dt a").first().text();
                         headline.thumb = e.select("dd a img").first().attr("src");
-                        headlineList.add(headline);
+                        headline.index = elements.indexOf(e);
+                        tempList.add(headline);
+                        boolean tempNeedUpdate = false;
+                        for (HeadlineModel head: headlineList) {
+                            if (!head.equals(headline)) {
+                                needUpdate = true;
+                                tempNeedUpdate = true;
+                                mHeadlineDao.deleteByKey(head.sid);
+                            }
+                        }
+                        requestHeadlineItem(headline, tempNeedUpdate);
                     }
-                    if (headlineList.size() == 3) {
-                        refreshHeadline(headlineList);
+                    if (needUpdate && tempList.size() == HEADLINE_NUM) {
+                        headlineList.clear();
+                        headlineList.addAll(tempList);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -248,31 +310,9 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         }).start();
     }
 
-    private void refreshHeadline(List<HeadlineModel> headlineList) {
-        mHeadlineViews.clear();
-        final LayoutInflater inflator = LayoutInflater.from(this);
-        for (final HeadlineModel headData: headlineList) {
-            final View headView = inflator.inflate(R.layout.headline, null);
-            mHeadlineViews.add(headView);
-            requestHeadlineImage(headData, headView);
-            headView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    openContent(headData.sid);
-                }
-            });
-        }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mHeadlineAdapter.notifyDataSetChanged();
-                mPageIndicator.notifyDataSetChanged();
-            }
-        });
-    }
-
-    private void requestHeadlineImage(final HeadlineModel data, final View view) {
-        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(data.sid), ArticleModel.class, null,
+    private void requestHeadlineItem(final HeadlineModel data, final boolean needUpdate) {
+        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(data.sid),
+                ArticleModel.class, null,
                 new Response.Listener<ArticleModel>() {
                     @Override
                     public void onResponse(ArticleModel response) {
@@ -284,15 +324,15 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                                 if (imgElement != null) {
                                     data.thumb = imgElement.attr("src");
                                 }
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        final NetworkImageView thumb = (NetworkImageView) view.findViewById(R.id.headline_thumb);
-                                        final TextView title = (TextView) view.findViewById(R.id.headline_title);
-                                        thumb.setImageUrl(data.thumb, VolleySingleton.getInstance().getImageLoader());
-                                        title.setText(data.title);
-                                    }
-                                });
+                                if (needUpdate) {
+                                    saveToDatabase(data);
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            updateSingleHeadline(data);
+                                        }
+                                    });
+                                }
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -308,6 +348,23 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         VolleySingleton.getInstance().addToRequestQueue(contentRequest);
     }
 
+    private void updateSingleHeadline(final HeadlineModel data) {
+        final View headView = mHeadlineViews.get(data.index);
+        headView.setTag(data.sid);
+
+        final NetworkImageView thumb = (NetworkImageView) headView.findViewById(R.id.headline_thumb);
+        final TextView title = (TextView) headView.findViewById(R.id.headline_title);
+        thumb.setImageUrl(data.thumb, VolleySingleton.getInstance().getImageLoader());
+        title.setText(data.title);
+
+        headView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openContent(data.sid);
+            }
+        });
+    }
+
     private void initDatabase() {
         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ITEM, null);
         SQLiteDatabase database = helper.getWritableDatabase();
@@ -315,6 +372,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         DaoSession daoSession = daoMaster.newSession();
         mFavorItemDao = daoSession.getFavorItemDao();
         mListItemDao = daoSession.getListItemDao();
+        mHeadlineDao = daoSession.getHeadlineDao();
     }
 
     private void openContent(final String sid) {
@@ -364,6 +422,19 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 }
             }
         }).start();
+    }
+
+    private void saveToDatabase(HeadlineModel headline) {
+        Headline item = new Headline();
+        item.setSid(headline.sid);
+        item.setTitle(headline.title);
+        item.setThumb(headline.thumb);
+        item.setIndex(headline.index);
+        try {
+            mHeadlineDao.insertOrReplace(item);
+        } catch (SQLiteConstraintException e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateDatabase(final ListItemModel.Result result) {

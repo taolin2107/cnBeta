@@ -8,6 +8,7 @@
     <string name="title_settings">设置</string>
     <string name="settings_font">正文字号</string>
     <string name="settings_favor">收藏</string>
+    <string name="settings_clean_cache">清除缓存</string>
     <string name="settings_about">关于</string>
     <string name="favor_toast">已收藏</string>
     <string name="favor_delete">删除</string>

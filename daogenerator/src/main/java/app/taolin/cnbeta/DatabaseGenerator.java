@@ -11,6 +11,7 @@ public class DatabaseGenerator {
         addFavorItem(schema);
         addListItem(schema);
         addArticle(schema);
+        addHeadline(schema);
         try {
             new DaoGenerator().generateAll(schema, "app/src/main/java");
         } catch (Exception e) {
@@ -48,5 +49,14 @@ public class DatabaseGenerator {
         article.addStringProperty("comments").notNull();
         article.addStringProperty("hometext").notNull();
         article.addStringProperty("bodytext").notNull();
+    }
+
+    private static void addHeadline(final Schema schema) {
+        Entity listItem = schema.addEntity("Headline");
+        listItem.setHasKeepSections(true);
+        listItem.addStringProperty("sid").primaryKey();
+        listItem.addStringProperty("title").notNull();
+        listItem.addStringProperty("thumb").notNull();
+        listItem.addIntProperty("index").notNull();
     }
 }

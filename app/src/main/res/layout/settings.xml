@@ -70,6 +70,35 @@
         android:background="#cccccc"/>
 
     <FrameLayout
+        android:id="@+id/clean_cache"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:onClick="onClick"
+        android:background="@drawable/bg_settings_item">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_gravity="start|center_vertical"
+            android:textSize="16sp"
+            android:text="@string/settings_clean_cache"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_gravity="end|center_vertical"
+            android:src="@drawable/right"/>
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#cccccc"/>
+
+    <FrameLayout
         android:id="@+id/about"
         android:layout_width="match_parent"
         android:layout_height="50dp"
