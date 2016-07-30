@@ -11,12 +11,12 @@ import java.util.List;
  * @description
  */
 
-public class ContentList {
+public class ListItemModel {
 
     public String status;
     public List<Result> result;
 
-    public class Result implements Comparable<Result> {
+    public static class Result implements Comparable<Result> {
         public String sid;
         public String title;
         public String pubtime;

@@ -11,5 +11,6 @@ public class Constants {
 
     public static final String KEY_FONT_SIZE = "font_size";
 
-    public static final String TABLE_FAVOR_ARTICLE = "favor-article";
+    public static final String TABLE_FAVOR_ITEM = "favor-item";
+    public static final String TABLE_ARTICLE = "article";
 }

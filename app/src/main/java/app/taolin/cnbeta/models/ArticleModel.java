@@ -7,7 +7,7 @@ package app.taolin.cnbeta.models;
  * @description
  */
 
-public class Content {
+public class ArticleModel {
 
     public String status;
     public Result result;

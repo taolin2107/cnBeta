@@ -7,7 +7,7 @@ package app.taolin.cnbeta.models;
  * @description
  */
 
-public class Headline {
+public class HeadlineModel {
     public String sid;
     public String title;
     public String thumb;

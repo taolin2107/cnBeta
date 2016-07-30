@@ -1,5 +1,6 @@
 package app.taolin.cnbeta;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -20,7 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import app.taolin.cnbeta.models.Content;
+import app.taolin.cnbeta.dao.Article;
+import app.taolin.cnbeta.dao.ArticleDao;
+import app.taolin.cnbeta.dao.DaoMaster;
+import app.taolin.cnbeta.dao.DaoSession;
+import app.taolin.cnbeta.models.ArticleModel;
 import app.taolin.cnbeta.utils.Constants;
 import app.taolin.cnbeta.utils.ContentUtil;
 import app.taolin.cnbeta.utils.GsonRequest;
@@ -37,6 +42,7 @@ import app.taolin.cnbeta.utils.VolleySingleton;
 public class ContentActivity extends AppCompatActivity {
 
     private int mViewWidth;
+    private ArticleDao mArticleDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +54,19 @@ public class ContentActivity extends AppCompatActivity {
             actionbar.setDisplayHomeAsUpEnabled(true);
         }
         setContentView(R.layout.content);
+        initDatabase();
+        initViews();
+    }
+
+    private void initDatabase() {
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_ARTICLE, null);
+        SQLiteDatabase database = helper.getWritableDatabase();
+        DaoMaster daoMaster = new DaoMaster(database);
+        DaoSession daoSession = daoMaster.newSession();
+        mArticleDao = daoSession.getArticleDao();
+    }
+
+    private void initViews() {
         final TextView title = (TextView) findViewById(R.id.title);
         final TextView contentDesc = (TextView) findViewById(R.id.content_desc);
         final TextView contentAbstract = (TextView) findViewById(R.id.content_abstract);
@@ -60,28 +79,55 @@ public class ContentActivity extends AppCompatActivity {
         }
         setFontSize(title, contentAbstract, content);
         final String sid = getIntent().getStringExtra("sid");
-        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(sid), Content.class, null,
-                new Response.Listener<Content>() {
-                    @Override
-                    public void onResponse(Content response) {
-                        if ("success".equals(response.status)) {
-                            title.setText(response.result.title);
-                            contentDesc.setText(getString(R.string.content_desc,
-                                    ContentUtil.getPrettyTime(ContentActivity.this, response.result.time),
-                                    Html.fromHtml(response.result.source), response.result.counter,
-                                    response.result.good, response.result.comments));
-                            new ImageLoadTask(contentAbstract).execute(ContentUtil.filterContent(response.result.hometext));
-                            new ImageLoadTask(content).execute(ContentUtil.filterContent(response.result.bodytext));
+        Article article = mArticleDao.queryBuilder().where(ArticleDao.Properties.Sid.eq(sid)).unique();
+        if (article != null) {
+            title.setText(article.getTitle());
+            contentDesc.setText(getString(R.string.content_desc,
+                    ContentUtil.getPrettyTime(ContentActivity.this, article.getTime()),
+                    Html.fromHtml(article.getSource()), article.getCounter(),
+                    article.getGood(), article.getComments()));
+            new ImageLoadTask(contentAbstract).execute(ContentUtil.filterContent(article.getHometext()));
+            new ImageLoadTask(content).execute(ContentUtil.filterContent(article.getBodytext()));
+        } else {
+            mArticleDao.queryBuilder().list();
+            GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(sid), ArticleModel.class, null,
+                    new Response.Listener<ArticleModel>() {
+                        @Override
+                        public void onResponse(ArticleModel response) {
+                            if ("success".equals(response.status)) {
+                                title.setText(response.result.title);
+                                contentDesc.setText(getString(R.string.content_desc,
+                                        ContentUtil.getPrettyTime(ContentActivity.this, response.result.time),
+                                        Html.fromHtml(response.result.source), response.result.counter,
+                                        response.result.good, response.result.comments));
+                                new ImageLoadTask(contentAbstract).execute(ContentUtil.filterContent(response.result.hometext));
+                                new ImageLoadTask(content).execute(ContentUtil.filterContent(response.result.bodytext));
+                                saveToDatabase(response.result);
+                            }
                         }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e("Taolin", error.getMessage());
-            }
-        });
-        contentRequest.setShouldCache(false);
-        VolleySingleton.getInstance().addToRequestQueue(contentRequest);
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e("Taolin", error.getMessage());
+                }
+            });
+            contentRequest.setShouldCache(false);
+            VolleySingleton.getInstance().addToRequestQueue(contentRequest);
+        }
+    }
+
+    private void saveToDatabase(ArticleModel.Result result) {
+        Article article = new Article();
+        article.setSid(result.sid);
+        article.setTime(result.time);
+        article.setTitle(result.title);
+        article.setSource(result.source);
+        article.setCounter(result.counter);
+        article.setGood(result.good);
+        article.setComments(result.comments);
+        article.setHometext(result.hometext);
+        article.setBodytext(result.bodytext);
+        mArticleDao.insertOrReplace(article);
     }
 
     private void setFontSize(TextView title, TextView abs, TextView content) {

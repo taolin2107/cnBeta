@@ -16,13 +16,14 @@ import com.baoyz.swipemenulistview.SwipeMenuCreator;
 import com.baoyz.swipemenulistview.SwipeMenuItem;
 import com.baoyz.swipemenulistview.SwipeMenuListView;
 
+import java.util.Collections;
 import java.util.List;
 
 import app.taolin.cnbeta.adapter.ContentListAdapter;
 import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
-import app.taolin.cnbeta.dao.FavorArticle;
-import app.taolin.cnbeta.dao.FavorArticleDao;
+import app.taolin.cnbeta.dao.FavorItem;
+import app.taolin.cnbeta.dao.FavorItemDao;
 import app.taolin.cnbeta.utils.Constants;
 
 /**
@@ -32,10 +33,10 @@ import app.taolin.cnbeta.utils.Constants;
  * @description
  */
 
-public class FavorArticleActivity extends AppCompatActivity {
+public class FavorListActivity extends AppCompatActivity {
 
     private ContentListAdapter mContentListAdapter;
-    private FavorArticleDao mFavorArticleDao;
+    private FavorItemDao mFavorItemDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +52,14 @@ public class FavorArticleActivity extends AppCompatActivity {
     }
 
     private void initData(SwipeMenuListView contentList) {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ARTICLE, null);
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ITEM, null);
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();
-        mFavorArticleDao = daoSession.getFavorArticleDao();
+        mFavorItemDao = daoSession.getFavorItemDao();
 
-        List<FavorArticle> dataList = mFavorArticleDao.queryBuilder().list();
+        List<FavorItem> dataList = mFavorItemDao.queryBuilder().list();
+        Collections.sort(dataList);
         mContentListAdapter = new ContentListAdapter(dataList, true);
         contentList.setAdapter(mContentListAdapter);
     }
@@ -72,14 +74,14 @@ public class FavorArticleActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                openContent(((FavorArticle) mContentListAdapter.getItem(position)).getSid());
+                openContent(((FavorItem) mContentListAdapter.getItem(position)).getSid());
             }
         });
         SwipeMenuCreator creator = new SwipeMenuCreator() {
             @Override
             public void create(SwipeMenu menu) {
-                Resources res = FavorArticleActivity.this.getResources();
-                SwipeMenuItem menuItem = new SwipeMenuItem(FavorArticleActivity.this);
+                Resources res = FavorListActivity.this.getResources();
+                SwipeMenuItem menuItem = new SwipeMenuItem(FavorListActivity.this);
                 menuItem.setBackground(android.R.color.holo_red_light);
                 menuItem.setWidth(res.getDimensionPixelSize(R.dimen.swipe_menu_item_width));
                 menuItem.setTitle(R.string.favor_delete);
@@ -104,8 +106,8 @@ public class FavorArticleActivity extends AppCompatActivity {
     }
 
     private void deleteArticle(int pos) {
-        FavorArticle article = (FavorArticle) mContentListAdapter.getItem(pos);
-        mFavorArticleDao.deleteByKey(article.getSid());
+        FavorItem article = (FavorItem) mContentListAdapter.getItem(pos);
+        mFavorItemDao.deleteByKey(article.getSid());
 
         mContentListAdapter.remove(pos);
         mContentListAdapter.notifyDataSetChanged();

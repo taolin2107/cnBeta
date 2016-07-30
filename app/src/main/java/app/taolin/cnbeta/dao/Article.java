@@ -7,10 +7,10 @@ import org.greenrobot.greendao.annotation.*;
 // KEEP INCLUDES - put your custom includes here
 // KEEP INCLUDES END
 /**
- * Entity mapped to table "FAVOR_ARTICLE".
+ * Entity mapped to table "ARTICLE".
  */
 @Entity
-public class FavorArticle {
+public class Article implements Comparable<Article> {
 
     @Id
     private String sid;
@@ -19,38 +19,42 @@ public class FavorArticle {
     private String title;
 
     @NotNull
-    private String pubtime;
+    private String time;
 
     @NotNull
-    private String collecttime;
     private String source;
 
     @NotNull
     private String counter;
+
+    @NotNull
     private String good;
 
     @NotNull
     private String comments;
+
+    @NotNull
     private String hometext;
+
+    @NotNull
     private String bodytext;
 
     // KEEP FIELDS - put your custom fields here
     // KEEP FIELDS END
 
     @Generated
-    public FavorArticle() {
+    public Article() {
     }
 
-    public FavorArticle(String sid) {
+    public Article(String sid) {
         this.sid = sid;
     }
 
     @Generated
-    public FavorArticle(String sid, String title, String pubtime, String collecttime, String source, String counter, String good, String comments, String hometext, String bodytext) {
+    public Article(String sid, String title, String time, String source, String counter, String good, String comments, String hometext, String bodytext) {
         this.sid = sid;
         this.title = title;
-        this.pubtime = pubtime;
-        this.collecttime = collecttime;
+        this.time = time;
         this.source = source;
         this.counter = counter;
         this.good = good;
@@ -78,30 +82,22 @@ public class FavorArticle {
     }
 
     @NotNull
-    public String getPubtime() {
-        return pubtime;
+    public String getTime() {
+        return time;
     }
 
     /** Not-null value; ensure this value is available before it is saved to the database. */
-    public void setPubtime(@NotNull String pubtime) {
-        this.pubtime = pubtime;
+    public void setTime(@NotNull String time) {
+        this.time = time;
     }
 
     @NotNull
-    public String getCollecttime() {
-        return collecttime;
-    }
-
-    /** Not-null value; ensure this value is available before it is saved to the database. */
-    public void setCollecttime(@NotNull String collecttime) {
-        this.collecttime = collecttime;
-    }
-
     public String getSource() {
         return source;
     }
 
-    public void setSource(String source) {
+    /** Not-null value; ensure this value is available before it is saved to the database. */
+    public void setSource(@NotNull String source) {
         this.source = source;
     }
 
@@ -115,11 +111,13 @@ public class FavorArticle {
         this.counter = counter;
     }
 
+    @NotNull
     public String getGood() {
         return good;
     }
 
-    public void setGood(String good) {
+    /** Not-null value; ensure this value is available before it is saved to the database. */
+    public void setGood(@NotNull String good) {
         this.good = good;
     }
 
@@ -133,23 +131,31 @@ public class FavorArticle {
         this.comments = comments;
     }
 
+    @NotNull
     public String getHometext() {
         return hometext;
     }
 
-    public void setHometext(String hometext) {
+    /** Not-null value; ensure this value is available before it is saved to the database. */
+    public void setHometext(@NotNull String hometext) {
         this.hometext = hometext;
     }
 
+    @NotNull
     public String getBodytext() {
         return bodytext;
     }
 
-    public void setBodytext(String bodytext) {
+    /** Not-null value; ensure this value is available before it is saved to the database. */
+    public void setBodytext(@NotNull String bodytext) {
         this.bodytext = bodytext;
     }
 
     // KEEP METHODS - put your custom methods here
+    @Override
+    public int compareTo(Article another) {
+        return another.time.compareTo(time);
+    }
     // KEEP METHODS END
 
 }

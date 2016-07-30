@@ -2,6 +2,7 @@ package app.taolin.cnbeta;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.support.v4.view.PagerAdapter;
@@ -42,11 +43,13 @@ import java.util.List;
 import app.taolin.cnbeta.adapter.ContentListAdapter;
 import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
-import app.taolin.cnbeta.dao.FavorArticle;
-import app.taolin.cnbeta.dao.FavorArticleDao;
-import app.taolin.cnbeta.models.Content;
-import app.taolin.cnbeta.models.ContentList;
-import app.taolin.cnbeta.models.Headline;
+import app.taolin.cnbeta.dao.FavorItem;
+import app.taolin.cnbeta.dao.FavorItemDao;
+import app.taolin.cnbeta.dao.ListItem;
+import app.taolin.cnbeta.dao.ListItemDao;
+import app.taolin.cnbeta.models.ArticleModel;
+import app.taolin.cnbeta.models.ListItemModel;
+import app.taolin.cnbeta.models.HeadlineModel;
 import app.taolin.cnbeta.utils.Constants;
 import app.taolin.cnbeta.utils.ContentUtil;
 import app.taolin.cnbeta.utils.GsonRequest;
@@ -57,40 +60,33 @@ import cn.appsdream.nestrefresh.normalstyle.NestRefreshLayout;
 
 public class MainActivity extends AppCompatActivity implements OnPullListener {
 
+    private static final String MAX_TIME = "max_time";
+
     private List<View> mHeadlineViews;
     private ViewPagerAdapter mHeadlineAdapter;
     private PageIndicator mPageIndicator;
 
-    private List<ContentList.Result> mDataList;
+    private List<ListItemModel.Result> mDataList;
     private ContentListAdapter mContentListAdapter;
     private NestRefreshLayout mLoader;
 
-    private FavorArticleDao mFavorArticleDao;
+    private FavorItemDao mFavorItemDao;
+    private ListItemDao mListItemDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initDatabase();
         initView();
         requestData(true);
-        initDatabase();
     }
 
     private void initView() {
         SwipeMenuListView contentList = (SwipeMenuListView) findViewById(R.id.content_list);
-        createSwipeMenu(contentList);
-        // add header
-        View header = LayoutInflater.from(this).inflate(R.layout.header_view, contentList, false);
-        final ViewPager headlines = (ViewPager) header.findViewById(R.id.headline_list);
-        mHeadlineViews = new ArrayList<>();
-        mHeadlineAdapter = new ViewPagerAdapter();
-        headlines.setAdapter(mHeadlineAdapter);
-        mPageIndicator = (PageIndicator) header.findViewById(R.id.indicator);
-        mPageIndicator.setViewPager(headlines);
-        if (contentList != null) {
-            contentList.addHeaderView(header);
-        }
+        addHeaderView(contentList);
+        addSwipeMenu(contentList);
 
         mDataList = new ArrayList<>();
         mContentListAdapter = new ContentListAdapter(mDataList, false);
@@ -99,10 +95,11 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //position 0 is the listview header
-                ContentList.Result result = (ContentList.Result) mContentListAdapter.getItem(position - 1);
+                ListItemModel.Result result = (ListItemModel.Result) mContentListAdapter.getItem(position - 1);
                 result.is_read = true;
                 openContent(result.sid);
                 mContentListAdapter.notifyDataSetChanged();
+                updateDatabase(result);
             }
         });
 
@@ -112,7 +109,20 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         mLoader.setOnLoadingListener(this);
     }
 
-    private void createSwipeMenu(SwipeMenuListView listView) {
+    private void addHeaderView(final SwipeMenuListView listView) {
+        // add header
+        View header = LayoutInflater.from(this).inflate(R.layout.header_view, listView, false);
+        final ViewPager headlines = (ViewPager) header.findViewById(R.id.headline_list);
+        mHeadlineViews = new ArrayList<>();
+        mHeadlineAdapter = new ViewPagerAdapter();
+        headlines.setAdapter(mHeadlineAdapter);
+        mPageIndicator = (PageIndicator) header.findViewById(R.id.indicator);
+        mPageIndicator.setViewPager(headlines);
+        listView.addHeaderView(header);
+    }
+
+    private void addSwipeMenu(final SwipeMenuListView listView) {
+        // add swipe menu
         SwipeMenuCreator creator = new SwipeMenuCreator() {
             @Override
             public void create(SwipeMenu menu) {
@@ -143,28 +153,36 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     }
 
     private void collectArticle(int pos) {
-        ContentList.Result result = mDataList.get(pos);
-        FavorArticle article = new FavorArticle();
-        article.setSid(result.sid);
-        article.setTitle(result.title);
-        article.setCounter(result.counter);
-        article.setComments(result.comments);
-        article.setPubtime(result.pubtime);
-        article.setCollecttime(ContentUtil.getFormatTime());
-        mFavorArticleDao.insert(article);
+        ListItemModel.Result result = mDataList.get(pos);
+        FavorItem favorItem = new FavorItem();
+        favorItem.setSid(result.sid);
+        favorItem.setTitle(result.title);
+        favorItem.setPubtime(result.pubtime);
+        favorItem.setCollecttime(ContentUtil.getFormatTime());
+        try {
+            mFavorItemDao.insert(favorItem);
+        } catch (SQLiteConstraintException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void requestData(boolean isRefresh) {
+    private void requestData(final boolean isRefresh) {
         final int size = mDataList.size();
         final String sid = (isRefresh || size == 0) ? Integer.MAX_VALUE + "" : mDataList.get(size - 1).sid;
-        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentListUrl(sid), ContentList.class, null,
-                new Response.Listener<ContentList>() {
+        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentListUrl(sid), ListItemModel.class, null,
+                new Response.Listener<ListItemModel>() {
                     @Override
-                    public void onResponse(ContentList response) {
+                    public void onResponse(ListItemModel response) {
                         if ("success".equals(response.status)) {
                             mDataList.addAll(response.result);
                             removeDuplicate(mDataList);
+                            saveToDatabase(mDataList);
                             mContentListAdapter.notifyDataSetChanged();
+                        } else {
+                            if (!isRefresh || mDataList.size() == 0) {
+                                loadFromDatabase(mDataList.size() == 0 ? MAX_TIME: mDataList.get(size - 1).pubtime);
+                                mContentListAdapter.notifyDataSetChanged();
+                            }
                         }
                         mLoader.onLoadFinished();
                     }
@@ -172,6 +190,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e("Taolin", error.getMessage());
+                if (!isRefresh || mDataList.size() == 0) {
+                    loadFromDatabase(mDataList.size() == 0 ? MAX_TIME: mDataList.get(size - 1).pubtime);
+                    mContentListAdapter.notifyDataSetChanged();
+                }
                 mLoader.onLoadFinished();
             }
         });
@@ -188,9 +210,9 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 try {
                     Document document = Jsoup.connect("http://www.cnbeta.com/").timeout(10000).get();
                     Elements elements = document.select(".main_content .headline dl");
-                    List<Headline> headlineList = new ArrayList<>();
+                    List<HeadlineModel> headlineList = new ArrayList<>();
                     for (Element e: elements) {
-                        Headline headline = new Headline();
+                        HeadlineModel headline = new HeadlineModel();
                         final String link = e.select("dt a").first().attr("href");
                         headline.sid = link.substring(link.lastIndexOf("/") + 1, link.lastIndexOf("."));
                         headline.title = e.select("dt a").first().text();
@@ -207,10 +229,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         }).start();
     }
 
-    private void refreshHeadline(List<Headline> headlineList) {
+    private void refreshHeadline(List<HeadlineModel> headlineList) {
         mHeadlineViews.clear();
         final LayoutInflater inflator = LayoutInflater.from(this);
-        for (final Headline headData: headlineList) {
+        for (final HeadlineModel headData: headlineList) {
             final View headView = inflator.inflate(R.layout.headline, null);
             mHeadlineViews.add(headView);
             requestHeadlineImage(headData, headView);
@@ -230,11 +252,11 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         });
     }
 
-    private void requestHeadlineImage(final Headline data, final View view) {
-        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(data.sid), Content.class, null,
-                new Response.Listener<Content>() {
+    private void requestHeadlineImage(final HeadlineModel data, final View view) {
+        GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(data.sid), ArticleModel.class, null,
+                new Response.Listener<ArticleModel>() {
                     @Override
-                    public void onResponse(Content response) {
+                    public void onResponse(ArticleModel response) {
                         try {
                             if ("success".equals(response.status)) {
                                 data.title = response.result.title.trim();
@@ -268,11 +290,12 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     }
 
     private void initDatabase() {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ARTICLE, null);
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ITEM, null);
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();
-        mFavorArticleDao = daoSession.getFavorArticleDao();
+        mFavorItemDao = daoSession.getFavorItemDao();
+        mListItemDao = daoSession.getListItemDao();
     }
 
     private void openContent(final String sid) {
@@ -281,11 +304,60 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         startActivity(intent);
     }
 
-    private void removeDuplicate(List<ContentList.Result> list) {
-        ArrayList<ContentList.Result> l = new ArrayList<>(new LinkedHashSet<>(list));
+    private void removeDuplicate(List<ListItemModel.Result> list) {
+        ArrayList<ListItemModel.Result> l = new ArrayList<>(new LinkedHashSet<>(list));
         list.clear();
         list.addAll(l);
         Collections.sort(list);
+    }
+
+    private void loadFromDatabase(final String pubTime) {
+        List<ListItem> list = mListItemDao.queryBuilder()
+                .where(ListItemDao.Properties.Pubtime.lt(pubTime))
+                .orderDesc(ListItemDao.Properties.Pubtime)
+                .limit(20)
+                .list();
+        for (ListItem li: list) {
+            ListItemModel.Result result = new ListItemModel.Result();
+            result.sid = li.getSid();
+            result.title = li.getTitle();
+            result.pubtime = li.getPubtime();
+            result.is_read = li.getIsread();
+            mDataList.add(result);
+        }
+    }
+
+    private void saveToDatabase(final List<ListItemModel.Result> list) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (ListItemModel.Result r: list) {
+                    ListItem item = new ListItem();
+                    item.setSid(r.sid);
+                    item.setTitle(r.title);
+                    item.setPubtime(r.pubtime);
+                    item.setIsread(r.is_read);
+                    try {
+                        mListItemDao.insert(item);
+                    } catch (SQLiteConstraintException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void updateDatabase(final ListItemModel.Result result) {
+        ListItem item = new ListItem();
+        item.setSid(result.sid);
+        item.setTitle(result.title);
+        item.setPubtime(result.pubtime);
+        item.setIsread(result.is_read);
+        try {
+            mListItemDao.insertOrReplace(item);
+        } catch (SQLiteConstraintException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -316,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private class ViewPagerAdapter extends PagerAdapter implements IconPagerAdapter {
 
-        public View getItem(int pos) {
+        View getItem(int pos) {
             return (mHeadlineViews != null && mHeadlineViews.size() > pos) ? mHeadlineViews.get(pos): null;
         }
 

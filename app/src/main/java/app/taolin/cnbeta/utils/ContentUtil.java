@@ -19,7 +19,8 @@ import app.taolin.cnbeta.R;
 
 public class ContentUtil {
 
-    private static final int MINUTE = 60 * 1000;
+    private static final int SECOND = 1000;
+    private static final int MINUTE = 60 * SECOND;
     private static final int HOUR = 60 * MINUTE;
     private static final int DAY = 24 * HOUR;
 
@@ -57,12 +58,14 @@ public class ContentUtil {
         try {
             Date pubTime = mDateFormat.parse(time);
             long pastTime = System.currentTimeMillis() - pubTime.getTime();
-            if (pastTime < HOUR) {
+            if (pastTime < MINUTE) {
+                return context.getString(R.string.past_seconds, pastTime / SECOND);
+            } else if (pastTime < HOUR) {
                 return context.getString(R.string.past_minutes, pastTime / MINUTE);
             } else if (pastTime < DAY) {
-                return context.getString(R.string.past_hours, pastTime / HOUR);
+                return context.getString(R.string.past_hours, Math.round(pastTime * 1f / HOUR));
             } else {
-                return context.getString(R.string.past_days, pastTime / DAY);
+                return context.getString(R.string.past_days, Math.round(pastTime * 1f / DAY));
             }
         } catch (ParseException e) {
             e.printStackTrace();

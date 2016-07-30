@@ -11,8 +11,8 @@ import java.util.List;
 
 import app.taolin.cnbeta.App;
 import app.taolin.cnbeta.R;
-import app.taolin.cnbeta.dao.FavorArticle;
-import app.taolin.cnbeta.models.ContentList;
+import app.taolin.cnbeta.dao.FavorItem;
+import app.taolin.cnbeta.models.ListItemModel;
 import app.taolin.cnbeta.utils.ContentUtil;
 
 /**
@@ -24,12 +24,12 @@ import app.taolin.cnbeta.utils.ContentUtil;
 
 public class ContentListAdapter extends BaseAdapter {
 
-    private List mContentList;
+    private List mDataList;
     private boolean mIsFavor;
     private String mFavorTimePrefix;
 
     public ContentListAdapter(List list, boolean isFavor) {
-        mContentList = list;
+        mDataList = list;
         mIsFavor = isFavor;
         if (isFavor) {
             mFavorTimePrefix = App.getInstance().getString(R.string.favor_time_prefix);
@@ -38,12 +38,12 @@ public class ContentListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return mContentList.size();
+        return mDataList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return mContentList.get(position);
+        return mDataList.get(position);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ContentListAdapter extends BaseAdapter {
     }
 
     public void remove(int position) {
-        mContentList.remove(position);
+        mDataList.remove(position);
     }
 
     @Override
@@ -68,11 +68,11 @@ public class ContentListAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
         if (mIsFavor) {
-            FavorArticle listItem = (FavorArticle) getItem(position);
+            FavorItem listItem = (FavorItem) getItem(position);
             holder.title.setText(listItem.getTitle().trim());
             holder.time.setText(mFavorTimePrefix + ContentUtil.getPrettyTime(App.getInstance(), listItem.getCollecttime()));
         } else {
-            ContentList.Result listItem = (ContentList.Result) getItem(position);
+            ListItemModel.Result listItem = (ListItemModel.Result) getItem(position);
             holder.title.setText(listItem.title.trim());
             holder.title.setTextColor(Color.parseColor(listItem.is_read ? "#999999": "#444444"));
             holder.time.setText(ContentUtil.getPrettyTime(App.getInstance(), listItem.pubtime));

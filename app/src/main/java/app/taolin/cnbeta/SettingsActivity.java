@@ -34,7 +34,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 new FontSettingsDialog().show(getFragmentManager(), "font_settings");
                 break;
             case R.id.favor:
-                startActivity(new Intent(this, FavorArticleActivity.class));
+                startActivity(new Intent(this, FavorListActivity.class));
                 break;
             case R.id.about:
 

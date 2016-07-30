@@ -1,10 +1,11 @@
 <resources>
     <string name="app_name">cnBeta 新闻</string>
     <string name="content_desc">%1$s&#160;&#160;%2$s&#160;&#160;%3$s次阅读&#160;&#160;%4$s次推荐&#160;&#160;%5$s条评论</string>
+    <string name="past_seconds">%d秒前</string>
     <string name="past_minutes">%d分钟前</string>
     <string name="past_hours">%d小时前</string>
     <string name="past_days">%d天前</string>
-    <string name="menu_title_settings">设置</string>
+    <string name="title_settings">设置</string>
     <string name="settings_font">正文字号</string>
     <string name="settings_favor">收藏</string>
     <string name="settings_about">关于</string>

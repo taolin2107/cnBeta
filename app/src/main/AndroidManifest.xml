@@ -19,8 +19,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".ContentActivity"/>
-        <activity android:name=".SettingsActivity"/>
-        <activity android:name=".FavorArticleActivity"/>
+
+        <activity android:name=".SettingsActivity"
+            android:label="@string/title_settings"/>
+
+        <activity android:name=".FavorListActivity"
+            android:label="@string/settings_favor"/>
     </application>
 
 </manifest>

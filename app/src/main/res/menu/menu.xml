@@ -4,5 +4,5 @@
     <item android:id="@+id/settings"
         app:showAsAction="always"
         android:icon="@drawable/ic_menu_more"
-        android:title="@string/menu_title_settings"/>
+        android:title="@string/title_settings"/>
 </menu>
