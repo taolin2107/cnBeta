@@ -61,6 +61,7 @@ import cn.appsdream.nestrefresh.normalstyle.NestRefreshLayout;
 public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private static final String MAX_TIME = "max_time";
+    private static final long REFRESH_INTERVEL = 5 * 60 * 1000;
 
     private List<View> mHeadlineViews;
     private ViewPagerAdapter mHeadlineAdapter;
@@ -72,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private FavorItemDao mFavorItemDao;
     private ListItemDao mListItemDao;
+
+    private long mLastRefreshTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +170,13 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     }
 
     private void requestData(final boolean isRefresh) {
+        if (isRefresh) {
+            final long currentTime = System.currentTimeMillis();
+            if (currentTime - mLastRefreshTime < REFRESH_INTERVEL) {
+                mLoader.onLoadFinished();
+                return;
+            }
+        }
         final int size = mDataList.size();
         final String sid = (isRefresh || size == 0) ? Integer.MAX_VALUE + "" : mDataList.get(size - 1).sid;
         GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentListUrl(sid), ListItemModel.class, null,
@@ -178,10 +188,16 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                             removeDuplicate(mDataList);
                             saveToDatabase(mDataList);
                             mContentListAdapter.notifyDataSetChanged();
+                            if (isRefresh) {
+                                mLastRefreshTime = System.currentTimeMillis();
+                            }
                         } else {
                             if (!isRefresh || mDataList.size() == 0) {
                                 loadFromDatabase(mDataList.size() == 0 ? MAX_TIME: mDataList.get(size - 1).pubtime);
                                 mContentListAdapter.notifyDataSetChanged();
+                            }
+                            if (isRefresh) {
+                                mLastRefreshTime = 0;
                             }
                         }
                         mLoader.onLoadFinished();
@@ -193,6 +209,9 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 if (!isRefresh || mDataList.size() == 0) {
                     loadFromDatabase(mDataList.size() == 0 ? MAX_TIME: mDataList.get(size - 1).pubtime);
                     mContentListAdapter.notifyDataSetChanged();
+                }
+                if (isRefresh) {
+                    mLastRefreshTime = 0;
                 }
                 mLoader.onLoadFinished();
             }
