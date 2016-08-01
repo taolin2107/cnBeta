@@ -63,13 +63,10 @@ import cn.appsdream.nestrefresh.normalstyle.NestRefreshLayout;
 public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private static final String MAX_TIME = "max_time";
-    private static final long REFRESH_INTERVEL = 5 * 60 * 1000;
+    private static final long REFRESH_INTERVAL = 5 * 60 * 1000;
     private static final int HEADLINE_NUM = 3;
 
     private List<View> mHeadlineViews;
-    private ViewPagerAdapter mHeadlineAdapter;
-    private PageIndicator mPageIndicator;
-
     private List<ListItemModel.Result> mDataList;
     private ContentListAdapter mContentListAdapter;
     private NestRefreshLayout mLoader;
@@ -125,10 +122,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         for (int i = 0; i < HEADLINE_NUM; i++) {
             mHeadlineViews.add(inflator.inflate(R.layout.headline, null));
         }
-        mHeadlineAdapter = new ViewPagerAdapter();
-        headlines.setAdapter(mHeadlineAdapter);
-        mPageIndicator = (PageIndicator) header.findViewById(R.id.indicator);
-        mPageIndicator.setViewPager(headlines);
+        ViewPagerAdapter headlineAdapter = new ViewPagerAdapter();
+        headlines.setAdapter(headlineAdapter);
+        PageIndicator pageIndicator = (PageIndicator) header.findViewById(R.id.indicator);
+        pageIndicator.setViewPager(headlines);
         listView.addHeaderView(header);
     }
 
@@ -180,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     private void requestData(final boolean isRefresh) {
         if (isRefresh) {
             final long currentTime = System.currentTimeMillis();
-            if (currentTime - mLastRefreshTime < REFRESH_INTERVEL) {
+            if (currentTime - mLastRefreshTime < REFRESH_INTERVAL) {
                 mLoader.onLoadFinished();
                 return;
             }
@@ -227,7 +224,9 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         contentRequest.setShouldCache(false);
         VolleySingleton.getInstance().addToRequestQueue(contentRequest);
 
-        refreshHeadline();
+        if (isRefresh) {
+            refreshHeadline();
+        }
     }
 
     private void refreshHeadline() {
@@ -290,11 +289,18 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                         headline.index = elements.indexOf(e);
                         tempList.add(headline);
                         boolean tempNeedUpdate = false;
-                        for (HeadlineModel head: headlineList) {
-                            if (!head.equals(headline)) {
-                                needUpdate = true;
-                                tempNeedUpdate = true;
-                                mHeadlineDao.deleteByKey(head.sid);
+                        if (headlineList.size() != HEADLINE_NUM) {
+                            needUpdate = true;
+                            tempNeedUpdate = true;
+                            headlineList.clear();
+                            mHeadlineDao.deleteAll();
+                        } else {
+                            for (HeadlineModel head: headlineList) {
+                                if (head.index == headline.index && !head.equals(headline)) {
+                                    needUpdate = true;
+                                    tempNeedUpdate = true;
+                                    mHeadlineDao.deleteByKey(head.sid);
+                                }
                             }
                         }
                         requestHeadlineItem(headline, tempNeedUpdate);

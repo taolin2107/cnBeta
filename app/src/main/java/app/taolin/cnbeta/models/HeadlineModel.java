@@ -17,7 +17,7 @@ public class HeadlineModel {
     public boolean equals(Object o) {
         if (o instanceof HeadlineModel) {
             HeadlineModel h = (HeadlineModel) o;
-            return sid.equals(h.sid) && index == h.index;
+            return sid.equals(h.sid);
         }
         return false;
     }
