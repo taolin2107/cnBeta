@@ -18,18 +18,24 @@ public class VolleySingleton {
 
     private VolleySingleton() {
         mRequestQueue = getRequestQueue();
+        final int maxCacheSize = (int) Runtime.getRuntime().maxMemory() / (1024 * 8);
         mImageLoader = new ImageLoader(mRequestQueue,
                 new ImageLoader.ImageCache() {
-                    private LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(20);
+                    private LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(maxCacheSize) {
+                        @Override
+                        protected int sizeOf(String key, Bitmap bitmap) {
+                            return bitmap.getByteCount() / 1024;
+                        }
+                    };
 
                     @Override
                     public Bitmap getBitmap(String url) {
-                        return cache.get(url);
+                        return cache.get(EncryptUtil.md5(url));
                     }
 
                     @Override
                     public void putBitmap(String url, Bitmap bitmap) {
-                        cache.put(url, bitmap);
+                        cache.put(EncryptUtil.md5(url), bitmap);
                     }
                 });
     }
@@ -59,5 +65,4 @@ public class VolleySingleton {
     public ImageLoader getImageLoader() {
         return mImageLoader;
     }
-
 }

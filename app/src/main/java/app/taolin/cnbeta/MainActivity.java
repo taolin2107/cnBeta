@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         if (isRefresh) {
             final long currentTime = System.currentTimeMillis();
             if (currentTime - mLastRefreshTime < REFRESH_INTERVAL) {
+                mContentListAdapter.notifyDataSetChanged();
                 mLoader.onLoadFinished();
                 return;
             }
@@ -239,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private List<HeadlineModel> loadHeadlineFromDatabase() {
         List<HeadlineModel> headlineList = new ArrayList<>();
-        List<Headline> heads = mHeadlineDao.queryBuilder().list();
+        List<Headline> heads = mHeadlineDao.queryBuilder().orderAsc(HeadlineDao.Properties.Index).list();
         for (Headline head: heads) {
             HeadlineModel headData = new HeadlineModel();
             headData.sid = head.getSid();
