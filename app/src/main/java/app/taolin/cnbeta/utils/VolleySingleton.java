@@ -1,7 +1,7 @@
 package app.taolin.cnbeta.utils;
 
 import android.graphics.Bitmap;
-import android.util.LruCache;
+import android.support.v4.util.LruCache;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -19,25 +19,7 @@ public class VolleySingleton {
     private VolleySingleton() {
         mRequestQueue = getRequestQueue();
         final int maxCacheSize = (int) Runtime.getRuntime().maxMemory() / (1024 * 8);
-        mImageLoader = new ImageLoader(mRequestQueue,
-                new ImageLoader.ImageCache() {
-                    private LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(maxCacheSize) {
-                        @Override
-                        protected int sizeOf(String key, Bitmap bitmap) {
-                            return bitmap.getByteCount() / 1024;
-                        }
-                    };
-
-                    @Override
-                    public Bitmap getBitmap(String url) {
-                        return cache.get(EncryptUtil.md5(url));
-                    }
-
-                    @Override
-                    public void putBitmap(String url, Bitmap bitmap) {
-                        cache.put(EncryptUtil.md5(url), bitmap);
-                    }
-                });
+        mImageLoader = new ImageLoader(mRequestQueue, new LruImageCache(maxCacheSize));
     }
 
     public static synchronized VolleySingleton getInstance() {
@@ -64,5 +46,27 @@ public class VolleySingleton {
 
     public ImageLoader getImageLoader() {
         return mImageLoader;
+    }
+
+    private class LruImageCache extends LruCache<String, Bitmap> implements ImageLoader.ImageCache {
+
+        LruImageCache(int maxSize) {
+            super(maxSize);
+        }
+
+        @Override
+        protected int sizeOf(String key, Bitmap value) {
+            return value.getByteCount() / 1024;
+        }
+
+        @Override
+        public Bitmap getBitmap(String url) {
+            return get(EncryptUtil.md5(url));
+        }
+
+        @Override
+        public void putBitmap(String url, Bitmap bitmap) {
+            put(EncryptUtil.md5(url), bitmap);
+        }
     }
 }
