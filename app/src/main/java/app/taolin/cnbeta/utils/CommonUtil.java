@@ -16,7 +16,7 @@ import java.io.File;
 
 public class CommonUtil {
 
-    public static File getDiskCacheDir(Context context, String uniqueName) {
+    public static File getDiskCacheDir(Context context) {
         String cachePath;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
@@ -24,7 +24,7 @@ public class CommonUtil {
         } else {
             cachePath = context.getCacheDir().getPath();
         }
-        return new File(cachePath + File.separator + uniqueName);
+        return new File(cachePath + File.separator + Constants.CACHE_DIR);
     }
 
     public static int getAppVersion(Context context) {

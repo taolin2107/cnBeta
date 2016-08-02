@@ -69,7 +69,7 @@
         android:layout_height="1px"
         android:background="#cccccc"/>
 
-    <FrameLayout
+    <RelativeLayout
         android:id="@+id/clean_cache"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -80,18 +80,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_gravity="start|center_vertical"
+            android:layout_centerVertical="true"
             android:textSize="16sp"
             android:text="@string/settings_clean_cache"/>
 
         <ImageView
+            android:id="@+id/cache_right_arrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
-            android:layout_gravity="end|center_vertical"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
             android:src="@drawable/right"/>
 
-    </FrameLayout>
+        <TextView
+            android:id="@+id/cache_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_centerVertical="true"
+            android:textSize="15sp"
+            android:visibility="gone"
+            android:layout_toStartOf="@id/cache_right_arrow"/>
+
+    </RelativeLayout>
 
     <View
         android:layout_width="match_parent"

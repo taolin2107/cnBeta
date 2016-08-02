@@ -59,12 +59,11 @@ public class VolleySingleton {
 
     private void initDiskCache(Context context) {
         try {
-            File cacheDir = CommonUtil.getDiskCacheDir(context, "headline");
+            File cacheDir = CommonUtil.getDiskCacheDir(context);
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs();
             }
-            final long maxCacheSize = 20 * 1024 * 1024;
-            mDiskCache = DiskLruCache.open(cacheDir, CommonUtil.getAppVersion(context), 1, maxCacheSize);
+            mDiskCache = DiskLruCache.open(cacheDir, CommonUtil.getAppVersion(context), 1, Constants.MAX_CACHE_SIZE);
         } catch (IOException e) {
             e.printStackTrace();
         }

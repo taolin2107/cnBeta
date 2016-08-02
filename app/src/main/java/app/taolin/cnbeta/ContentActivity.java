@@ -145,12 +145,11 @@ public class ContentActivity extends AppCompatActivity {
 
     private void initCache() {
         try {
-            File cacheDir = CommonUtil.getDiskCacheDir(this, "thumb");
+            File cacheDir = CommonUtil.getDiskCacheDir(this);
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs();
             }
-            final long maxCacheSize = 20 * 1024 * 1024;
-            mDiskCache = DiskLruCache.open(cacheDir, CommonUtil.getAppVersion(this), 1, maxCacheSize);
+            mDiskCache = DiskLruCache.open(cacheDir, CommonUtil.getAppVersion(this), 1, Constants.MAX_CACHE_SIZE);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -280,5 +279,15 @@ public class ContentActivity extends AppCompatActivity {
             }
         }
         return false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            mDiskCache.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
