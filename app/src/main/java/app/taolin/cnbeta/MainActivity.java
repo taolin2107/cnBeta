@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         for (int i = 0; i < HEADLINE_NUM; i++) {
             mHeadlineViews.add(inflator.inflate(R.layout.headline, null));
         }
+        headlines.setOffscreenPageLimit(2);
         ViewPagerAdapter headlineAdapter = new ViewPagerAdapter();
         headlines.setAdapter(headlineAdapter);
         PageIndicator pageIndicator = (PageIndicator) header.findViewById(R.id.indicator);
@@ -486,18 +487,18 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     private class ViewPagerAdapter extends PagerAdapter implements IconPagerAdapter {
 
         View getItem(int pos) {
-            return (mHeadlineViews != null && mHeadlineViews.size() > pos) ? mHeadlineViews.get(pos): null;
+            return mHeadlineViews.get(pos);
         }
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
             container.addView(getItem(position), 0);
-            return mHeadlineViews.get(position);
+            return getItem(position);
         }
 
         @Override
         public void destroyItem(ViewGroup container, int position, Object object) {
-            container.removeView(mHeadlineViews.get(position));
+            container.removeView(getItem(position));
         }
 
         @Override

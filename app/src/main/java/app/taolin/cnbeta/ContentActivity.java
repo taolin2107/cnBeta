@@ -65,10 +65,10 @@ public class ContentActivity extends AppCompatActivity {
         if (actionbar != null) {
             actionbar.setDisplayHomeAsUpEnabled(true);
         }
-        setContentView(R.layout.content);
-        initDatabase();
-        initViews();
         initCache();
+        initDatabase();
+        setContentView(R.layout.content);
+        initViews();
     }
 
     private void initDatabase() {
