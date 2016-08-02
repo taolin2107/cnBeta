@@ -1,6 +1,9 @@
 package app.taolin.cnbeta;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,8 +20,13 @@ import android.widget.TextView;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 import app.taolin.cnbeta.dao.Article;
@@ -26,8 +34,11 @@ import app.taolin.cnbeta.dao.ArticleDao;
 import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
 import app.taolin.cnbeta.models.ArticleModel;
+import app.taolin.cnbeta.utils.CommonUtil;
 import app.taolin.cnbeta.utils.Constants;
 import app.taolin.cnbeta.utils.ContentUtil;
+import app.taolin.cnbeta.utils.DiskLruCache;
+import app.taolin.cnbeta.utils.EncryptUtil;
 import app.taolin.cnbeta.utils.GsonRequest;
 import app.taolin.cnbeta.utils.SharedPreferenceUtil;
 import app.taolin.cnbeta.utils.VolleySingleton;
@@ -43,6 +54,7 @@ public class ContentActivity extends AppCompatActivity {
 
     private int mViewWidth;
     private ArticleDao mArticleDao;
+    private DiskLruCache mDiskCache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +68,7 @@ public class ContentActivity extends AppCompatActivity {
         setContentView(R.layout.content);
         initDatabase();
         initViews();
+        initCache();
     }
 
     private void initDatabase() {
@@ -130,6 +143,19 @@ public class ContentActivity extends AppCompatActivity {
         mArticleDao.insertOrReplace(article);
     }
 
+    private void initCache() {
+        try {
+            File cacheDir = CommonUtil.getDiskCacheDir(this, "thumb");
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            final long maxCacheSize = 20 * 1024 * 1024;
+            mDiskCache = DiskLruCache.open(cacheDir, CommonUtil.getAppVersion(this), 1, maxCacheSize);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void setFontSize(TextView title, TextView abs, TextView content) {
         switch (SharedPreferenceUtil.read(Constants.KEY_FONT_SIZE, 1)) {
             case 0:
@@ -158,19 +184,37 @@ public class ContentActivity extends AppCompatActivity {
     private Html.ImageGetter mImageGetter = new Html.ImageGetter() {
         @Override
         public Drawable getDrawable(final String source) {
-            Drawable drawable = null;
             try {
-                URL url = new URL(source);
-                InputStream is = url.openStream();
-                drawable = Drawable.createFromStream(is, null);
-                float scale = mViewWidth * 1.0f / drawable.getIntrinsicWidth();
-                final int height = (int) (drawable.getIntrinsicHeight() * scale);
-                drawable.setBounds(0, 0, mViewWidth, height);
-                is.close();
+                DiskLruCache.Snapshot snapShot = mDiskCache.get(EncryptUtil.md5(source));
+                if (snapShot == null) {
+                    DiskLruCache.Editor editor = mDiskCache.edit(EncryptUtil.md5(source));
+                    if (editor != null) {
+                        OutputStream os = editor.newOutputStream(0);
+                        if (downloadUrlToStream(source, os)) {
+                            editor.commit();
+                        } else {
+                            editor.abort();
+                        }
+                    }
+                    mDiskCache.flush();
+                    snapShot = mDiskCache.get(EncryptUtil.md5(source));
+                }
+                Bitmap bitmap = null;
+                if (snapShot != null) {
+                    InputStream is = snapShot.getInputStream(0);
+                    bitmap = BitmapFactory.decodeStream(is);
+                }
+                if (bitmap != null) {
+                    Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                    float scale = mViewWidth * 1.0f / bitmap.getWidth();
+                    final int height = (int) (bitmap.getHeight() * scale);
+                    drawable.setBounds(0, 0, mViewWidth, height);
+                    return drawable;
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return drawable;
+            return null;
         }
     };
 
@@ -202,5 +246,39 @@ public class ContentActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean downloadUrlToStream(String src, OutputStream os) {
+        HttpURLConnection connect = null;
+        BufferedOutputStream out = null;
+        BufferedInputStream in = null;
+        try {
+            final URL url = new URL(src);
+            connect = (HttpURLConnection) url.openConnection();
+            in = new BufferedInputStream(connect.getInputStream(), 8 * 1024);
+            out = new BufferedOutputStream(os, 8 * 1024);
+            int b;
+            while ((b = in.read()) != -1) {
+                out.write(b);
+            }
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (connect != null) {
+                connect.disconnect();
+            }
+            try {
+                if (out != null) {
+                    out.close();
+                }
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 }
