@@ -27,6 +27,9 @@
 
         <activity android:name=".FavorListActivity"
             android:label="@string/settings_favor"/>
+
+        <activity android:name=".AboutActivity"
+            android:label="@string/settings_about"/>
     </application>
 
 </manifest>

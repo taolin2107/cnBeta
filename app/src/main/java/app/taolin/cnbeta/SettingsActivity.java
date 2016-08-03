@@ -79,9 +79,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             case R.id.font_settings:
                 new FontSettingsDialog().show(getFragmentManager(), "font_settings");
                 break;
+
             case R.id.favor:
                 startActivity(new Intent(this, FavorListActivity.class));
                 break;
+
             case R.id.clean_cache:
                 try {
                     mDiskCache.delete();
@@ -94,7 +96,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 break;
 
             case R.id.about:
-
+                startActivity(new Intent(this, AboutActivity.class));
                 break;
         }
     }

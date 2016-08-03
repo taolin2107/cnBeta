@@ -14,4 +14,7 @@
     <string name="favor_delete">删除</string>
     <string name="favor_time_prefix">收藏于&#160;</string>
     <string name="clean_cache_success">缓存清理成功</string>
+    <string name="about_content">cnBeta 1.0</string>
+    <string name="about_author">&#169;Taolin</string>
+    <string name="about_email">taolin2107@163.com</string>
 </resources>
