@@ -34,6 +34,7 @@
             android:background="@drawable/bg_content_abstract"
             android:padding="6dp"
             android:lineSpacingExtra="6dp"
+            android:text="@string/loading"
             android:textSize="15sp"
             android:textColor="#555555"/>
 
@@ -43,6 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:lineSpacingExtra="6dp"
+            android:text="@string/loading"
             android:textSize="16sp"
             android:textColor="#555555"/>
     </LinearLayout>

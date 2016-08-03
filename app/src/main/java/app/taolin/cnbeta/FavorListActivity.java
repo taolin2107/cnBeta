@@ -55,7 +55,7 @@ public class FavorListActivity extends AppCompatActivity {
     }
 
     private void initData(SwipeMenuListView contentList) {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_FAVOR_ITEM, null);
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.DATABASE_NAME, null);
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();

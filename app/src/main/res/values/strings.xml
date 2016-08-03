@@ -19,4 +19,5 @@
     <string name="about_content">cnBeta 1.0</string>
     <string name="about_author">&#169;Taolin</string>
     <string name="about_email">taolin2107@163.com</string>
+    <string name="loading">加载中&#8230;</string>
 </resources>

@@ -72,7 +72,7 @@ public class ContentActivity extends AppCompatActivity {
     }
 
     private void initDatabase() {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.TABLE_ARTICLE, null);
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.DATABASE_NAME, null);
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();
