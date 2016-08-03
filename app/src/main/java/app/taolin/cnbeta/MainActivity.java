@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         try {
             mFavorItemDao.insert(favorItem);
         } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
+            Log.e("Taolin", "primary key duplicated, skip this error.");
         }
     }
 
@@ -385,7 +385,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
 
     private void openContent(final String sid) {
         Intent intent = new Intent(this, ContentActivity.class);
-        intent.putExtra("sid", sid);
+        intent.putExtra(Constants.KEY_EXTRA_SID, sid);
         startActivity(intent);
     }
 
@@ -425,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                     try {
                         mListItemDao.insert(item);
                     } catch (SQLiteConstraintException e) {
-                        e.printStackTrace();
+                        Log.e("Taolin", "primary key duplicated, skip this error.");
                     }
                 }
             }
@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         try {
             mHeadlineDao.insertOrReplace(item);
         } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
+            Log.e("Taolin", "primary key duplicated, skip this error.");
         }
     }
 

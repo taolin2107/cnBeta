@@ -36,6 +36,11 @@ public class ContentListAdapter extends BaseAdapter {
         }
     }
 
+    public void cleanList() {
+        mDataList.clear();
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return mDataList.size();

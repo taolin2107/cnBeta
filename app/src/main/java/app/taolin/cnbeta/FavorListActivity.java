@@ -1,5 +1,7 @@
 package app.taolin.cnbeta;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
@@ -7,6 +9,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -66,7 +69,7 @@ public class FavorListActivity extends AppCompatActivity {
 
     private void openContent(final String sid) {
         Intent intent = new Intent(this, ContentActivity.class);
-        intent.putExtra("sid", sid);
+        intent.putExtra(Constants.KEY_EXTRA_SID, sid);
         startActivity(intent);
     }
 
@@ -114,11 +117,36 @@ public class FavorListActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.favor_menu, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
                 return true;
+
+            case R.id.clean:
+                new AlertDialog.Builder(this)
+                        .setMessage(R.string.favor_clean_confirm_dialog)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mFavorItemDao.deleteAll();
+                                mContentListAdapter.cleanList();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                        .create()
+                        .show();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

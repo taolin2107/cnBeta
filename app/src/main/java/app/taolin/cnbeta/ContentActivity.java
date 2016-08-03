@@ -91,7 +91,7 @@ public class ContentActivity extends AppCompatActivity {
             content.setMovementMethod(LinkMovementMethod.getInstance());
         }
         setFontSize(title, contentAbstract, content);
-        final String sid = getIntent().getStringExtra("sid");
+        final String sid = getIntent().getStringExtra(Constants.KEY_EXTRA_SID);
         Article article = mArticleDao.queryBuilder().where(ArticleDao.Properties.Sid.eq(sid)).unique();
         if (article != null) {
             title.setText(article.getTitle());
@@ -211,6 +211,8 @@ public class ContentActivity extends AppCompatActivity {
                     return drawable;
                 }
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return null;
