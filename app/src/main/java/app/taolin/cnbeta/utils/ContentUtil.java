@@ -354,6 +354,10 @@ public class ContentUtil {
         return mDateFormat.format(new Date());
     }
 
+    public static String getFormatTime(long timestamp) {
+        return mDateFormat.format(new Date(timestamp));
+    }
+
     private static final String[] filter = {"<strong>", "</strong>", "<p.*?>"};
 
     public static String filterContent(String content) {

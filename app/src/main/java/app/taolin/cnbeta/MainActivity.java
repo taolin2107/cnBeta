@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +42,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import app.taolin.cnbeta.adapter.ContentListAdapter;
+import app.taolin.cnbeta.dao.Article;
+import app.taolin.cnbeta.dao.ArticleDao;
 import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
 import app.taolin.cnbeta.dao.FavorItem;
@@ -75,8 +78,10 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     private FavorItemDao mFavorItemDao;
     private ListItemDao mListItemDao;
     private HeadlineDao mHeadlineDao;
+    private ArticleDao mArticleDao;
 
     private long mLastRefreshTime;
+    private int mLastKeyCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -398,6 +403,18 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         mFavorItemDao = daoSession.getFavorItemDao();
         mListItemDao = daoSession.getListItemDao();
         mHeadlineDao = daoSession.getHeadlineDao();
+        mArticleDao = daoSession.getArticleDao();
+        deleteOldData();
+    }
+
+    private void deleteOldData() {
+        // 删除超过3天的缓存数据
+        final long threeDays = 3 * 24 * 3600 * 1000;
+        String endDate = ContentUtil.getFormatTime(System.currentTimeMillis() - threeDays);
+        List<Article> deleteArticles = mArticleDao.queryBuilder().where(ArticleDao.Properties.Time.lt(endDate)).list();
+        mArticleDao.deleteInTx(deleteArticles);
+        List<ListItem> deleteListItems = mListItemDao.queryBuilder().where(ListItemDao.Properties.Pubtime.lt(endDate)).list();
+        mListItemDao.deleteInTx(deleteListItems);
     }
 
     private void openContent(final String sid) {
@@ -481,6 +498,21 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     @Override
     public void onLoading(AbsRefreshLayout listLoader) {
         requestData(false);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mLastKeyCode == KeyEvent.KEYCODE_BACK) {
+                finish();
+            } else {
+                Toast.makeText(this, R.string.press_back_again_to_exit, Toast.LENGTH_SHORT).show();
+                mLastKeyCode = keyCode;
+            }
+            return true;
+        }
+        mLastKeyCode = keyCode;
+        return super.onKeyUp(keyCode, event);
     }
 
     @Override
