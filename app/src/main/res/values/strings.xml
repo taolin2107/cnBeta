@@ -20,4 +20,11 @@
     <string name="about_author">&#169;Taolin</string>
     <string name="about_email">taolin2107@163.com</string>
     <string name="loading">加载中&#8230;</string>
+    <string name="content_menu">更多</string>
+
+    <string name="sharing_wechat_friend">微信好友</string>
+    <string name="sharing_wechat_moment">朋友圈</string>
+    <string name="sharing_qq">QQ</string>
+    <string name="sharing_favor">收藏</string>
+    <string name="sharing_favor_cancel">取消收藏</string>
 </resources>
