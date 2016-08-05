@@ -56,6 +56,7 @@ public class ContentActivity extends AppCompatActivity {
     private int mViewWidth;
     private ArticleDao mArticleDao;
     private DiskLruCache mDiskCache;
+    private String mSid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,8 +93,8 @@ public class ContentActivity extends AppCompatActivity {
             content.setMovementMethod(LinkMovementMethod.getInstance());
         }
         setFontSize(title, contentAbstract, content);
-        final String sid = getIntent().getStringExtra(Constants.KEY_EXTRA_SID);
-        Article article = mArticleDao.queryBuilder().where(ArticleDao.Properties.Sid.eq(sid)).unique();
+        mSid = getIntent().getStringExtra(Constants.KEY_EXTRA_SID);
+        Article article = mArticleDao.queryBuilder().where(ArticleDao.Properties.Sid.eq(mSid)).unique();
         if (article != null) {
             title.setText(article.getTitle());
             contentDesc.setText(getString(R.string.content_desc,
@@ -103,8 +104,7 @@ public class ContentActivity extends AppCompatActivity {
             new ImageLoadTask(contentAbstract).execute(ContentUtil.filterContent(article.getHometext()));
             new ImageLoadTask(content).execute(ContentUtil.filterContent(article.getBodytext()));
         } else {
-            mArticleDao.queryBuilder().list();
-            GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(sid), ArticleModel.class, null,
+            GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentUrl(mSid), ArticleModel.class, null,
                     new Response.Listener<ArticleModel>() {
                         @Override
                         public void onResponse(ArticleModel response) {
@@ -284,7 +284,11 @@ public class ContentActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.content_more:
-                new SharingDialog().show(getFragmentManager(), "sharing_dialog");
+                SharingDialog dialog = new SharingDialog();
+                Bundle bundle = new Bundle();
+                bundle.putString(Constants.KEY_EXTRA_SID, mSid);
+                dialog.setArguments(bundle);
+                dialog.show(getFragmentManager(), "sharing_dialog");
                 break;
 
             case android.R.id.home:

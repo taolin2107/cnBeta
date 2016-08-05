@@ -11,45 +11,55 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/wechat_friend"
-            android:layout_width="wrap_content"
+            android:id="@+id/share_wechat_friend"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:drawableTop="@drawable/ic_share_favor"
+            android:padding="3dp"
+            android:drawablePadding="5dp"
+            android:drawableTop="@drawable/ic_share_weixin"
+            android:background="@drawable/bg_share_item"
             android:gravity="center"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textColor="#555555"
+            android:maxLines="1"
             android:text="@string/sharing_wechat_friend"/>
 
         <TextView
-            android:id="@+id/wechat_moment"
-            android:layout_width="wrap_content"
+            android:id="@+id/share_wechat_moment"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:drawableTop="@drawable/ic_share_favor"
-            android:layout_marginStart="10dp"
+            android:padding="3dp"
+            android:drawablePadding="5dp"
+            android:drawableTop="@drawable/ic_share_moment"
+            android:background="@drawable/bg_share_item"
             android:gravity="center"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textColor="#555555"
             android:text="@string/sharing_wechat_moment"/>
 
         <TextView
-            android:id="@+id/qq"
-            android:layout_width="wrap_content"
+            android:id="@+id/share_qq"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:drawableTop="@drawable/ic_share_favor"
-            android:layout_marginStart="10dp"
+            android:padding="3dp"
+            android:drawablePadding="5dp"
+            android:drawableTop="@drawable/ic_share_qq"
+            android:background="@drawable/bg_share_item"
             android:gravity="center"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textColor="#555555"
             android:text="@string/sharing_qq"/>
 
         <TextView
-            android:id="@+id/favor"
-            android:layout_width="wrap_content"
+            android:id="@+id/share_favor"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
+            android:padding="3dp"
+            android:drawablePadding="5dp"
             android:drawableTop="@drawable/ic_share_favor"
-            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_share_item"
             android:gravity="center"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textColor="#555555"
             android:text="@string/sharing_favor"/>
     </LinearLayout>

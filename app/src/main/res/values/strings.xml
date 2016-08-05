@@ -11,6 +11,7 @@
     <string name="settings_clean_cache">清除缓存</string>
     <string name="settings_about">关于</string>
     <string name="favor_toast">已收藏</string>
+    <string name="favor_toast_cancel">已取消收藏</string>
     <string name="favor_delete">删除</string>
     <string name="favor_clean">清空</string>
     <string name="favor_clean_confirm_dialog">清空收藏?</string>

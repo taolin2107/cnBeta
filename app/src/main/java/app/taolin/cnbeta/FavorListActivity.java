@@ -40,6 +40,7 @@ public class FavorListActivity extends AppCompatActivity {
 
     private ContentListAdapter mContentListAdapter;
     private FavorItemDao mFavorItemDao;
+    private SwipeMenuListView mContentList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,22 +50,26 @@ public class FavorListActivity extends AppCompatActivity {
             actionbar.setDisplayHomeAsUpEnabled(true);
         }
         setContentView(R.layout.favor_article_layout);
-        SwipeMenuListView contentList = (SwipeMenuListView) findViewById(R.id.article_list);
-        initViews(contentList);
-        initData(contentList);
+        mContentList = (SwipeMenuListView) findViewById(R.id.article_list);
+        initViews();
+        initDatabase();
     }
 
-    private void initData(SwipeMenuListView contentList) {
+    private void initDatabase() {
         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.DATABASE_NAME, null);
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();
         mFavorItemDao = daoSession.getFavorItemDao();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         List<FavorItem> dataList = mFavorItemDao.queryBuilder().list();
         Collections.sort(dataList);
         mContentListAdapter = new ContentListAdapter(dataList, true);
-        contentList.setAdapter(mContentListAdapter);
+        mContentList.setAdapter(mContentListAdapter);
     }
 
     private void openContent(final String sid) {
@@ -73,8 +78,8 @@ public class FavorListActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void initViews(SwipeMenuListView listView) {
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    private void initViews() {
+        mContentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 openContent(((FavorItem) mContentListAdapter.getItem(position)).getSid());
@@ -93,9 +98,9 @@ public class FavorListActivity extends AppCompatActivity {
                 menu.addMenuItem(menuItem);
             }
         };
-        listView.setMenuCreator(creator);
-        listView.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
-        listView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+        mContentList.setMenuCreator(creator);
+        mContentList.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
+        mContentList.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
                 switch (index) {
