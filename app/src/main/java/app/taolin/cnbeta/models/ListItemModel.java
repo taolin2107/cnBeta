@@ -31,6 +31,8 @@ public class ListItemModel {
         public String topic_logo;
         public String thumb;
         public boolean is_read = false;
+        public boolean is_favor = false;
+        public String collect_time = "";
 
         @Override
         public boolean equals(Object o) {

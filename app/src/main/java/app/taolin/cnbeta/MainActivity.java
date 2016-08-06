@@ -42,12 +42,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import app.taolin.cnbeta.adapter.ContentListAdapter;
-import app.taolin.cnbeta.dao.Article;
-import app.taolin.cnbeta.dao.ArticleDao;
 import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
-import app.taolin.cnbeta.dao.FavorItem;
-import app.taolin.cnbeta.dao.FavorItemDao;
 import app.taolin.cnbeta.dao.Headline;
 import app.taolin.cnbeta.dao.HeadlineDao;
 import app.taolin.cnbeta.dao.ListItem;
@@ -71,14 +67,12 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
     private static final int HEADLINE_NUM = 3;
 
     private List<View> mHeadlineViews;
-    private List<ListItemModel.Result> mDataList;
+    private List<ListItem> mDataList;
     private ContentListAdapter mContentListAdapter;
     private NestRefreshLayout mLoader;
 
-    private FavorItemDao mFavorItemDao;
     private ListItemDao mListItemDao;
     private HeadlineDao mHeadlineDao;
-    private ArticleDao mArticleDao;
 
     private long mLastRefreshTime;
     private int mLastKeyCode;
@@ -105,11 +99,11 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //position 0 is the listview header
-                ListItemModel.Result result = (ListItemModel.Result) mContentListAdapter.getItem(position - 1);
-                result.is_read = true;
-                openContent(result.sid);
+                ListItem item = mContentListAdapter.getItem(position - 1);
+                item.setIsread(true);
+                openContent(item.getSid());
                 mContentListAdapter.notifyDataSetChanged();
-                updateDatabase(result);
+                updateDatabase(item);
             }
         });
 
@@ -158,27 +152,16 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
                 switch (index) {
                     case 0:
-                        collectArticle(position);
+                        ListItem item = mDataList.get(position);
+                        item.setIsfavor(true);
+                        item.setCollecttime(ContentUtil.getFormatTime());
+                        updateDatabase(item);
                         Toast.makeText(MainActivity.this, R.string.favor_toast, Toast.LENGTH_SHORT).show();
                         break;
                 }
                 return false;
             }
         });
-    }
-
-    private void collectArticle(int pos) {
-        ListItemModel.Result result = mDataList.get(pos);
-        FavorItem favorItem = new FavorItem();
-        favorItem.setSid(result.sid);
-        favorItem.setTitle(result.title);
-        favorItem.setPubtime(result.pubtime);
-        favorItem.setCollecttime(ContentUtil.getFormatTime());
-        try {
-            mFavorItemDao.insert(favorItem);
-        } catch (SQLiteConstraintException e) {
-            Log.e("Taolin", "primary key duplicated, skip this error.");
-        }
     }
 
     private void requestData(final boolean isRefresh) {
@@ -191,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
             }
         }
         final int size = mDataList.size();
-        final String sid = (isRefresh || size == 0) ? Integer.MAX_VALUE + "" : mDataList.get(size - 1).sid;
+        final String sid = (isRefresh || size == 0) ? Integer.MAX_VALUE + "" : mDataList.get(size - 1).getSid();
         GsonRequest contentRequest = new GsonRequest<>(ContentUtil.getContentListUrl(sid), ListItemModel.class, null,
                 new Response.Listener<ListItemModel>() {
                     @Override
@@ -201,14 +184,14 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                             if (isRefresh) {
                                 String pubTime = MIN_TIME;
                                 if (mDataList.size() > 0) {
-                                    pubTime = mDataList.get(0).pubtime;
+                                    pubTime = mDataList.get(0).getPubtime();
                                 }
                                 mDataList.addAll(loadFromDatabase(pubTime, false));
                                 mLastRefreshTime = System.currentTimeMillis();
                             } else {
                                 String pubTime = MAX_TIME;
                                 if (mDataList.size() > 0) {
-                                    pubTime = mDataList.get(mDataList.size() - 1).pubtime;
+                                    pubTime = mDataList.get(mDataList.size() - 1).getPubtime();
                                 }
                                 mDataList.addAll(loadFromDatabase(pubTime, true));
                             }
@@ -217,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                         } else {
                             final boolean isEmpty = mDataList.size() == 0;
                             if (!isRefresh || isEmpty) {
-                                String pubTime = isEmpty ? MAX_TIME: mDataList.get(mDataList.size() - 1).pubtime;
+                                String pubTime = isEmpty ? MAX_TIME: mDataList.get(mDataList.size() - 1).getPubtime();
                                 mDataList.addAll(loadFromDatabase(pubTime, true));
                                 removeDuplicate(mDataList);
                                 mContentListAdapter.notifyDataSetChanged();
@@ -234,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 Log.e("Taolin", error.getMessage());
                 final boolean isEmpty = mDataList.size() == 0;
                 if (!isRefresh || isEmpty) {
-                    String pubTime = isEmpty ? MAX_TIME: mDataList.get(size - 1).pubtime;
+                    String pubTime = isEmpty ? MAX_TIME: mDataList.get(size - 1).getPubtime();
                     mDataList.addAll(loadFromDatabase(pubTime, true));
                     removeDuplicate(mDataList);
                     mContentListAdapter.notifyDataSetChanged();
@@ -400,21 +383,8 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();
-        mFavorItemDao = daoSession.getFavorItemDao();
         mListItemDao = daoSession.getListItemDao();
         mHeadlineDao = daoSession.getHeadlineDao();
-        mArticleDao = daoSession.getArticleDao();
-        deleteOldData();
-    }
-
-    private void deleteOldData() {
-        // 删除超过3天的缓存数据
-        final long threeDays = 3 * 24 * 3600 * 1000;
-        String endDate = ContentUtil.getFormatTime(System.currentTimeMillis() - threeDays);
-        List<Article> deleteArticles = mArticleDao.queryBuilder().where(ArticleDao.Properties.Time.lt(endDate)).list();
-        mArticleDao.deleteInTx(deleteArticles);
-        List<ListItem> deleteListItems = mListItemDao.queryBuilder().where(ListItemDao.Properties.Pubtime.lt(endDate)).list();
-        mListItemDao.deleteInTx(deleteListItems);
     }
 
     private void openContent(final String sid) {
@@ -423,30 +393,20 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         startActivity(intent);
     }
 
-    private void removeDuplicate(List<ListItemModel.Result> list) {
-        ArrayList<ListItemModel.Result> l = new ArrayList<>(new LinkedHashSet<>(list));
+    private void removeDuplicate(List<ListItem> list) {
+        ArrayList<ListItem> l = new ArrayList<>(new LinkedHashSet<>(list));
         list.clear();
         list.addAll(l);
         Collections.sort(list);
     }
 
-    private List<ListItemModel.Result> loadFromDatabase(final String pubTime, final boolean lessThan) {
-        List<ListItem> list = mListItemDao.queryBuilder()
+    private List<ListItem> loadFromDatabase(final String pubTime, final boolean lessThan) {
+        return mListItemDao.queryBuilder()
                 .where(lessThan ? ListItemDao.Properties.Pubtime.lt(pubTime):
                     ListItemDao.Properties.Pubtime.gt(pubTime))
                 .orderDesc(ListItemDao.Properties.Pubtime)
                 .limit(20)
                 .list();
-        List<ListItemModel.Result> resultList = new ArrayList<>();
-        for (ListItem li: list) {
-            ListItemModel.Result result = new ListItemModel.Result();
-            result.sid = li.getSid();
-            result.title = li.getTitle();
-            result.pubtime = li.getPubtime();
-            result.is_read = li.getIsread();
-            resultList.add(result);
-        }
-        return resultList;
     }
 
     private void saveToDatabase(final List<ListItemModel.Result> list) {
@@ -456,6 +416,8 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
             item.setTitle(r.title);
             item.setPubtime(r.pubtime);
             item.setIsread(r.is_read);
+            item.setIsfavor(r.is_favor);
+            item.setCollecttime(r.collect_time);
             try {
                 mListItemDao.insert(item);
             } catch (SQLiteConstraintException e) {
@@ -477,17 +439,8 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
         }
     }
 
-    private void updateDatabase(final ListItemModel.Result result) {
-        ListItem item = new ListItem();
-        item.setSid(result.sid);
-        item.setTitle(result.title);
-        item.setPubtime(result.pubtime);
-        item.setIsread(result.is_read);
-        try {
-            mListItemDao.insertOrReplace(item);
-        } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
-        }
+    private void updateDatabase(final ListItem item) {
+        mListItemDao.update(item);
     }
 
     @Override

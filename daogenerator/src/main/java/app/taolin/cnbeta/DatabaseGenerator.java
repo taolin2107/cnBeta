@@ -7,8 +7,7 @@ import org.greenrobot.greendao.generator.Schema;
 public class DatabaseGenerator {
 
     public static void main(String[] args) {
-        Schema schema = new Schema(1, "app.taolin.cnbeta.dao");
-        addFavorItem(schema);
+        Schema schema = new Schema(2, "app.taolin.cnbeta.dao");
         addListItem(schema);
         addArticle(schema);
         addHeadline(schema);
@@ -19,15 +18,6 @@ public class DatabaseGenerator {
         }
     }
 
-    private static void addFavorItem(final Schema schema) {
-        Entity listItem = schema.addEntity("FavorItem");
-        listItem.setHasKeepSections(true);
-        listItem.addStringProperty("sid").primaryKey();
-        listItem.addStringProperty("title").notNull();
-        listItem.addStringProperty("pubtime");
-        listItem.addStringProperty("collecttime");
-    }
-
     private static void addListItem(final Schema schema) {
         Entity listItem = schema.addEntity("ListItem");
         listItem.setHasKeepSections(true);
@@ -35,6 +25,8 @@ public class DatabaseGenerator {
         listItem.addStringProperty("title").notNull();
         listItem.addStringProperty("pubtime");
         listItem.addBooleanProperty("isread").notNull();
+        listItem.addBooleanProperty("isfavor").notNull();
+        listItem.addStringProperty("collecttime");
     }
 
     private static void addArticle(final Schema schema) {

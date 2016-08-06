@@ -19,6 +19,8 @@ public class ListItem implements Comparable<ListItem> {
     private String title;
     private String pubtime;
     private boolean isread;
+    private boolean isfavor;
+    private String collecttime;
 
     // KEEP FIELDS - put your custom fields here
     // KEEP FIELDS END
@@ -32,11 +34,13 @@ public class ListItem implements Comparable<ListItem> {
     }
 
     @Generated
-    public ListItem(String sid, String title, String pubtime, boolean isread) {
+    public ListItem(String sid, String title, String pubtime, boolean isread, boolean isfavor, String collecttime) {
         this.sid = sid;
         this.title = title;
         this.pubtime = pubtime;
         this.isread = isread;
+        this.isfavor = isfavor;
+        this.collecttime = collecttime;
     }
 
     public String getSid() {
@@ -73,9 +77,28 @@ public class ListItem implements Comparable<ListItem> {
         this.isread = isread;
     }
 
+    public boolean getIsfavor() {
+        return isfavor;
+    }
+
+    public void setIsfavor(boolean isfavor) {
+        this.isfavor = isfavor;
+    }
+
+    public String getCollecttime() {
+        return collecttime;
+    }
+
+    public void setCollecttime(String collecttime) {
+        this.collecttime = collecttime;
+    }
+
     // KEEP METHODS - put your custom methods here
     @Override
     public int compareTo(ListItem another) {
+        if (another.isfavor && isfavor) {
+            return another.collecttime.compareTo(collecttime);
+        }
         return another.pubtime.compareTo(pubtime);
     }
     // KEEP METHODS END

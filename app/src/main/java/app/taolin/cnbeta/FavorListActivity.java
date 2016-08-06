@@ -25,8 +25,8 @@ import java.util.List;
 import app.taolin.cnbeta.adapter.ContentListAdapter;
 import app.taolin.cnbeta.dao.DaoMaster;
 import app.taolin.cnbeta.dao.DaoSession;
-import app.taolin.cnbeta.dao.FavorItem;
-import app.taolin.cnbeta.dao.FavorItemDao;
+import app.taolin.cnbeta.dao.ListItem;
+import app.taolin.cnbeta.dao.ListItemDao;
 import app.taolin.cnbeta.utils.Constants;
 
 /**
@@ -39,7 +39,7 @@ import app.taolin.cnbeta.utils.Constants;
 public class FavorListActivity extends AppCompatActivity {
 
     private ContentListAdapter mContentListAdapter;
-    private FavorItemDao mFavorItemDao;
+    private ListItemDao mListItemDao;
     private SwipeMenuListView mContentList;
 
     @Override
@@ -60,13 +60,15 @@ public class FavorListActivity extends AppCompatActivity {
         SQLiteDatabase database = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(database);
         DaoSession daoSession = daoMaster.newSession();
-        mFavorItemDao = daoSession.getFavorItemDao();
+        mListItemDao = daoSession.getListItemDao();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        List<FavorItem> dataList = mFavorItemDao.queryBuilder().list();
+        List<ListItem> dataList = mListItemDao.queryBuilder()
+                .where(ListItemDao.Properties.Isfavor.eq(true))
+                .list();
         Collections.sort(dataList);
         mContentListAdapter = new ContentListAdapter(dataList, true);
         mContentList.setAdapter(mContentListAdapter);
@@ -82,7 +84,7 @@ public class FavorListActivity extends AppCompatActivity {
         mContentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                openContent(((FavorItem) mContentListAdapter.getItem(position)).getSid());
+                openContent((mContentListAdapter.getItem(position)).getSid());
             }
         });
         SwipeMenuCreator creator = new SwipeMenuCreator() {
@@ -105,7 +107,7 @@ public class FavorListActivity extends AppCompatActivity {
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
                 switch (index) {
                     case 0:
-                        deleteArticle(position);
+                        removeFavor(position);
                         break;
                 }
                 return false;
@@ -113,12 +115,24 @@ public class FavorListActivity extends AppCompatActivity {
         });
     }
 
-    private void deleteArticle(int pos) {
-        FavorItem article = (FavorItem) mContentListAdapter.getItem(pos);
-        mFavorItemDao.deleteByKey(article.getSid());
+    private void removeFavor(int pos) {
+        ListItem article = mContentListAdapter.getItem(pos);
+        article.setIsfavor(false);
+        mListItemDao.update(article);
 
         mContentListAdapter.remove(pos);
         mContentListAdapter.notifyDataSetChanged();
+    }
+
+    private void removeAllFavors() {
+        List<ListItem> dataList = mListItemDao.queryBuilder()
+                .where(ListItemDao.Properties.Isfavor.eq(true))
+                .list();
+        for (ListItem item: dataList) {
+            item.setIsfavor(false);
+        }
+        mListItemDao.updateInTx(dataList);
+        mContentListAdapter.cleanList();
     }
 
     @Override
@@ -140,8 +154,7 @@ public class FavorListActivity extends AppCompatActivity {
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                mFavorItemDao.deleteAll();
-                                mContentListAdapter.cleanList();
+                                removeAllFavors();
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {

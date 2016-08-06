@@ -26,6 +26,8 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
         public final static Property Title = new Property(1, String.class, "title", false, "TITLE");
         public final static Property Pubtime = new Property(2, String.class, "pubtime", false, "PUBTIME");
         public final static Property Isread = new Property(3, boolean.class, "isread", false, "ISREAD");
+        public final static Property Isfavor = new Property(4, boolean.class, "isfavor", false, "ISFAVOR");
+        public final static Property Collecttime = new Property(5, String.class, "collecttime", false, "COLLECTTIME");
     };
 
 
@@ -44,7 +46,9 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
                 "\"SID\" TEXT PRIMARY KEY NOT NULL ," + // 0: sid
                 "\"TITLE\" TEXT NOT NULL ," + // 1: title
                 "\"PUBTIME\" TEXT," + // 2: pubtime
-                "\"ISREAD\" INTEGER NOT NULL );"); // 3: isread
+                "\"ISREAD\" INTEGER NOT NULL ," + // 3: isread
+                "\"ISFAVOR\" INTEGER NOT NULL ," + // 4: isfavor
+                "\"COLLECTTIME\" TEXT);"); // 5: collecttime
     }
 
     /** Drops the underlying database table. */
@@ -68,6 +72,12 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
             stmt.bindString(3, pubtime);
         }
         stmt.bindLong(4, entity.getIsread() ? 1L: 0L);
+        stmt.bindLong(5, entity.getIsfavor() ? 1L: 0L);
+ 
+        String collecttime = entity.getCollecttime();
+        if (collecttime != null) {
+            stmt.bindString(6, collecttime);
+        }
     }
 
     @Override
@@ -85,6 +95,12 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
             stmt.bindString(3, pubtime);
         }
         stmt.bindLong(4, entity.getIsread() ? 1L: 0L);
+        stmt.bindLong(5, entity.getIsfavor() ? 1L: 0L);
+ 
+        String collecttime = entity.getCollecttime();
+        if (collecttime != null) {
+            stmt.bindString(6, collecttime);
+        }
     }
 
     @Override
@@ -98,7 +114,9 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
             cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // sid
             cursor.getString(offset + 1), // title
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // pubtime
-            cursor.getShort(offset + 3) != 0 // isread
+            cursor.getShort(offset + 3) != 0, // isread
+            cursor.getShort(offset + 4) != 0, // isfavor
+            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5) // collecttime
         );
         return entity;
     }
@@ -109,6 +127,8 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
         entity.setTitle(cursor.getString(offset + 1));
         entity.setPubtime(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setIsread(cursor.getShort(offset + 3) != 0);
+        entity.setIsfavor(cursor.getShort(offset + 4) != 0);
+        entity.setCollecttime(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
      }
     
     @Override

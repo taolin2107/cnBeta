@@ -11,8 +11,7 @@ import java.util.List;
 
 import app.taolin.cnbeta.App;
 import app.taolin.cnbeta.R;
-import app.taolin.cnbeta.dao.FavorItem;
-import app.taolin.cnbeta.models.ListItemModel;
+import app.taolin.cnbeta.dao.ListItem;
 import app.taolin.cnbeta.utils.ContentUtil;
 
 /**
@@ -24,16 +23,14 @@ import app.taolin.cnbeta.utils.ContentUtil;
 
 public class ContentListAdapter extends BaseAdapter {
 
-    private List mDataList;
+    private List<ListItem> mDataList;
     private boolean mIsFavor;
     private String mFavorTimePrefix;
 
-    public ContentListAdapter(List list, boolean isFavor) {
+    public ContentListAdapter(List<ListItem> list, boolean isFavor) {
         mDataList = list;
         mIsFavor = isFavor;
-        if (isFavor) {
-            mFavorTimePrefix = App.getInstance().getString(R.string.favor_time_prefix);
-        }
+        mFavorTimePrefix = App.getInstance().getString(R.string.favor_time_prefix);
     }
 
     public void cleanList() {
@@ -47,7 +44,7 @@ public class ContentListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public ListItem getItem(int position) {
         return mDataList.get(position);
     }
 
@@ -72,15 +69,13 @@ public class ContentListAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
+        ListItem listItem = getItem(position);
+        holder.title.setText(listItem.getTitle().trim());
         if (mIsFavor) {
-            FavorItem listItem = (FavorItem) getItem(position);
-            holder.title.setText(listItem.getTitle().trim());
             holder.time.setText(mFavorTimePrefix + ContentUtil.getPrettyTime(App.getInstance(), listItem.getCollecttime()));
         } else {
-            ListItemModel.Result listItem = (ListItemModel.Result) getItem(position);
-            holder.title.setText(listItem.title.trim());
-            holder.title.setTextColor(Color.parseColor(listItem.is_read ? "#999999": "#444444"));
-            holder.time.setText(ContentUtil.getPrettyTime(App.getInstance(), listItem.pubtime));
+            holder.title.setTextColor(Color.parseColor(listItem.getIsread()? "#999999": "#444444"));
+            holder.time.setText(ContentUtil.getPrettyTime(App.getInstance(), listItem.getPubtime()));
         }
         return convertView;
     }
