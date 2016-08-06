@@ -32,7 +32,9 @@ public class ListItemModel {
         public String thumb;
         public boolean is_read = false;
         public boolean is_favor = false;
+        public boolean is_headline = false;
         public String collect_time = "";
+        public int head_index = 1;
 
         @Override
         public boolean equals(Object o) {

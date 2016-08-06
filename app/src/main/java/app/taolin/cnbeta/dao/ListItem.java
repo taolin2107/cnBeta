@@ -17,10 +17,15 @@ public class ListItem implements Comparable<ListItem> {
 
     @NotNull
     private String title;
+
+    @NotNull
     private String pubtime;
     private boolean isread;
     private boolean isfavor;
+    private boolean isheadline;
     private String collecttime;
+    private String thumb;
+    private Integer headindex;
 
     // KEEP FIELDS - put your custom fields here
     // KEEP FIELDS END
@@ -34,13 +39,16 @@ public class ListItem implements Comparable<ListItem> {
     }
 
     @Generated
-    public ListItem(String sid, String title, String pubtime, boolean isread, boolean isfavor, String collecttime) {
+    public ListItem(String sid, String title, String pubtime, boolean isread, boolean isfavor, boolean isheadline, String collecttime, String thumb, Integer headindex) {
         this.sid = sid;
         this.title = title;
         this.pubtime = pubtime;
         this.isread = isread;
         this.isfavor = isfavor;
+        this.isheadline = isheadline;
         this.collecttime = collecttime;
+        this.thumb = thumb;
+        this.headindex = headindex;
     }
 
     public String getSid() {
@@ -61,11 +69,13 @@ public class ListItem implements Comparable<ListItem> {
         this.title = title;
     }
 
+    @NotNull
     public String getPubtime() {
         return pubtime;
     }
 
-    public void setPubtime(String pubtime) {
+    /** Not-null value; ensure this value is available before it is saved to the database. */
+    public void setPubtime(@NotNull String pubtime) {
         this.pubtime = pubtime;
     }
 
@@ -85,12 +95,36 @@ public class ListItem implements Comparable<ListItem> {
         this.isfavor = isfavor;
     }
 
+    public boolean getIsheadline() {
+        return isheadline;
+    }
+
+    public void setIsheadline(boolean isheadline) {
+        this.isheadline = isheadline;
+    }
+
     public String getCollecttime() {
         return collecttime;
     }
 
     public void setCollecttime(String collecttime) {
         this.collecttime = collecttime;
+    }
+
+    public String getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(String thumb) {
+        this.thumb = thumb;
+    }
+
+    public Integer getHeadindex() {
+        return headindex;
+    }
+
+    public void setHeadindex(Integer headindex) {
+        this.headindex = headindex;
     }
 
     // KEEP METHODS - put your custom methods here
@@ -101,6 +135,16 @@ public class ListItem implements Comparable<ListItem> {
         }
         return another.pubtime.compareTo(pubtime);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof ListItem) {
+            ListItem h = (ListItem) o;
+            return sid.equals(h.sid);
+        }
+        return false;
+    }
+
     // KEEP METHODS END
 
 }

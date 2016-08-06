@@ -10,7 +10,6 @@ public class DatabaseGenerator {
         Schema schema = new Schema(2, "app.taolin.cnbeta.dao");
         addListItem(schema);
         addArticle(schema);
-        addHeadline(schema);
         try {
             new DaoGenerator().generateAll(schema, "app/src/main/java");
         } catch (Exception e) {
@@ -23,10 +22,13 @@ public class DatabaseGenerator {
         listItem.setHasKeepSections(true);
         listItem.addStringProperty("sid").primaryKey();
         listItem.addStringProperty("title").notNull();
-        listItem.addStringProperty("pubtime");
+        listItem.addStringProperty("pubtime").notNull();
         listItem.addBooleanProperty("isread").notNull();
         listItem.addBooleanProperty("isfavor").notNull();
+        listItem.addBooleanProperty("isheadline").notNull();
         listItem.addStringProperty("collecttime");
+        listItem.addStringProperty("thumb");
+        listItem.addIntProperty("headindex");
     }
 
     private static void addArticle(final Schema schema) {
@@ -41,14 +43,5 @@ public class DatabaseGenerator {
         article.addStringProperty("comments").notNull();
         article.addStringProperty("hometext").notNull();
         article.addStringProperty("bodytext").notNull();
-    }
-
-    private static void addHeadline(final Schema schema) {
-        Entity listItem = schema.addEntity("Headline");
-        listItem.setHasKeepSections(true);
-        listItem.addStringProperty("sid").primaryKey();
-        listItem.addStringProperty("title").notNull();
-        listItem.addStringProperty("thumb").notNull();
-        listItem.addIntProperty("index").notNull();
     }
 }

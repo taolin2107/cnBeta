@@ -27,7 +27,10 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
         public final static Property Pubtime = new Property(2, String.class, "pubtime", false, "PUBTIME");
         public final static Property Isread = new Property(3, boolean.class, "isread", false, "ISREAD");
         public final static Property Isfavor = new Property(4, boolean.class, "isfavor", false, "ISFAVOR");
-        public final static Property Collecttime = new Property(5, String.class, "collecttime", false, "COLLECTTIME");
+        public final static Property Isheadline = new Property(5, boolean.class, "isheadline", false, "ISHEADLINE");
+        public final static Property Collecttime = new Property(6, String.class, "collecttime", false, "COLLECTTIME");
+        public final static Property Thumb = new Property(7, String.class, "thumb", false, "THUMB");
+        public final static Property Headindex = new Property(8, Integer.class, "headindex", false, "HEADINDEX");
     };
 
 
@@ -45,10 +48,13 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
         db.execSQL("CREATE TABLE " + constraint + "\"LIST_ITEM\" (" + //
                 "\"SID\" TEXT PRIMARY KEY NOT NULL ," + // 0: sid
                 "\"TITLE\" TEXT NOT NULL ," + // 1: title
-                "\"PUBTIME\" TEXT," + // 2: pubtime
+                "\"PUBTIME\" TEXT NOT NULL ," + // 2: pubtime
                 "\"ISREAD\" INTEGER NOT NULL ," + // 3: isread
                 "\"ISFAVOR\" INTEGER NOT NULL ," + // 4: isfavor
-                "\"COLLECTTIME\" TEXT);"); // 5: collecttime
+                "\"ISHEADLINE\" INTEGER NOT NULL ," + // 5: isheadline
+                "\"COLLECTTIME\" TEXT," + // 6: collecttime
+                "\"THUMB\" TEXT," + // 7: thumb
+                "\"HEADINDEX\" INTEGER);"); // 8: headindex
     }
 
     /** Drops the underlying database table. */
@@ -66,17 +72,24 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
             stmt.bindString(1, sid);
         }
         stmt.bindString(2, entity.getTitle());
- 
-        String pubtime = entity.getPubtime();
-        if (pubtime != null) {
-            stmt.bindString(3, pubtime);
-        }
+        stmt.bindString(3, entity.getPubtime());
         stmt.bindLong(4, entity.getIsread() ? 1L: 0L);
         stmt.bindLong(5, entity.getIsfavor() ? 1L: 0L);
+        stmt.bindLong(6, entity.getIsheadline() ? 1L: 0L);
  
         String collecttime = entity.getCollecttime();
         if (collecttime != null) {
-            stmt.bindString(6, collecttime);
+            stmt.bindString(7, collecttime);
+        }
+ 
+        String thumb = entity.getThumb();
+        if (thumb != null) {
+            stmt.bindString(8, thumb);
+        }
+ 
+        Integer headindex = entity.getHeadindex();
+        if (headindex != null) {
+            stmt.bindLong(9, headindex);
         }
     }
 
@@ -89,17 +102,24 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
             stmt.bindString(1, sid);
         }
         stmt.bindString(2, entity.getTitle());
- 
-        String pubtime = entity.getPubtime();
-        if (pubtime != null) {
-            stmt.bindString(3, pubtime);
-        }
+        stmt.bindString(3, entity.getPubtime());
         stmt.bindLong(4, entity.getIsread() ? 1L: 0L);
         stmt.bindLong(5, entity.getIsfavor() ? 1L: 0L);
+        stmt.bindLong(6, entity.getIsheadline() ? 1L: 0L);
  
         String collecttime = entity.getCollecttime();
         if (collecttime != null) {
-            stmt.bindString(6, collecttime);
+            stmt.bindString(7, collecttime);
+        }
+ 
+        String thumb = entity.getThumb();
+        if (thumb != null) {
+            stmt.bindString(8, thumb);
+        }
+ 
+        Integer headindex = entity.getHeadindex();
+        if (headindex != null) {
+            stmt.bindLong(9, headindex);
         }
     }
 
@@ -113,10 +133,13 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
         ListItem entity = new ListItem( //
             cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0), // sid
             cursor.getString(offset + 1), // title
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // pubtime
+            cursor.getString(offset + 2), // pubtime
             cursor.getShort(offset + 3) != 0, // isread
             cursor.getShort(offset + 4) != 0, // isfavor
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5) // collecttime
+            cursor.getShort(offset + 5) != 0, // isheadline
+            cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6), // collecttime
+            cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7), // thumb
+            cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8) // headindex
         );
         return entity;
     }
@@ -125,10 +148,13 @@ public class ListItemDao extends AbstractDao<ListItem, String> {
     public void readEntity(Cursor cursor, ListItem entity, int offset) {
         entity.setSid(cursor.isNull(offset + 0) ? null : cursor.getString(offset + 0));
         entity.setTitle(cursor.getString(offset + 1));
-        entity.setPubtime(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setPubtime(cursor.getString(offset + 2));
         entity.setIsread(cursor.getShort(offset + 3) != 0);
         entity.setIsfavor(cursor.getShort(offset + 4) != 0);
-        entity.setCollecttime(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
+        entity.setIsheadline(cursor.getShort(offset + 5) != 0);
+        entity.setCollecttime(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
+        entity.setThumb(cursor.isNull(offset + 7) ? null : cursor.getString(offset + 7));
+        entity.setHeadindex(cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8));
      }
     
     @Override
