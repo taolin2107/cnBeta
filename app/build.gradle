@@ -9,11 +9,45 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+        multiDexEnabled true
+    }
+    signingConfigs {
+        debug {
+            // No sign config for debug
+        }
+
+        release {
+            storeFile file(APP_KEY_STORE_FILE)
+            storePassword APP_KEY_STORE_PWD
+            keyAlias APP_KEY_ALIAS
+            keyPassword APP_KEY_PWD
+        }
     }
     buildTypes {
-        release {
+        debug {
+            debuggable true
             minifyEnabled false
+            versionNameSuffix "-debug"
+            zipAlignEnabled false
+            signingConfig signingConfigs.debug
+        }
+        release {
+            debuggable false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true
+            signingConfig signingConfigs.release
+        }
+    }
+    sourceSets {
+        main {
+            java {
+                srcDir 'src/main/java'
+            }
+            jniLibs {
+                srcDir 'libs'
+            }
         }
     }
 }
