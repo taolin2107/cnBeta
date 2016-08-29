@@ -122,7 +122,7 @@ public class ContentActivity extends AppCompatActivity {
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.e("Taolin", error.getMessage());
+                    Log.e("Taolin", "" + error.getMessage());
                 }
             });
             contentRequest.setShouldCache(false);
@@ -247,6 +247,8 @@ public class ContentActivity extends AppCompatActivity {
         try {
             final URL url = new URL(src);
             connect = (HttpURLConnection) url.openConnection();
+            connect.setConnectTimeout(10000);
+            connect.setReadTimeout(10000);
             in = new BufferedInputStream(connect.getInputStream(), 8 * 1024);
             out = new BufferedOutputStream(os, 8 * 1024);
             int b;
@@ -255,6 +257,8 @@ public class ContentActivity extends AppCompatActivity {
             }
             return true;
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e){
             e.printStackTrace();
         } finally {
             if (connect != null) {

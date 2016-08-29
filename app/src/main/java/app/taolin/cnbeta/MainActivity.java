@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("Taolin", error.getMessage());
+                Log.e("Taolin", "" + error.getMessage());
                 final boolean isEmpty = mDataList.size() == 0;
                 if (!isRefresh || isEmpty) {
                     String pubTime = isEmpty ? MAX_TIME: mDataList.get(size - 1).getPubtime();
@@ -358,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements OnPullListener {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("Taolin", error.getMessage());
+                Log.e("Taolin", "" + error.getMessage());
             }
         });
         contentRequest.setShouldCache(false);
